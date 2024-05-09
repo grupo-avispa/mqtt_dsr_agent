@@ -41,9 +41,20 @@ set(dependencies
   Eigen3::Eigen
 )
 
+# Set the headers
+set(headers
+  include/${PROJECT_NAME}/mqtt_agent.hpp
+)
+
+# # Qt Moc
+qt5_wrap_cpp(qt_moc ${headers}
+  OPTIONS --no-notes # Don't display a note for the headers which don't produce a moc_*.cpp
+)
+
 # Add library
 add_library(${library_name} SHARED src/mqtt_agent.cpp)
 target_link_libraries(${library_name} ${dependencies})
+target_sources(${library_name} PRIVATE ${qt_moc})
 
 # Add executable
 add_executable(${executable_name} src/main.cpp)

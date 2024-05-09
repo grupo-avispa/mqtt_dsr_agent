@@ -26,8 +26,8 @@ class MqttAgent : public QObject
   Q_OBJECT
 
 public:
-  MqttAgent(std::string agent_name, int agent_id);
-  virtual ~MqttAgent();
+  explicit MqttAgent(std::string agent_name, int agent_id);
+  ~MqttAgent();
 
   // DSR callbacks
   void node_updated(std::uint64_t id, const std::string & type);
