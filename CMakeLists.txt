@@ -61,13 +61,12 @@ add_executable(${executable_name} src/main.cpp)
 target_link_libraries(${executable_name} ${library_name})
 
 # Install
-install(TARGETS ${library_name} #${executable_name}
+install(TARGETS ${library_name} ${executable_name}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
-  RUNTIME DESTINATION lib/${PROJECT_NAME}
+  RUNTIME DESTINATION bin
 )
 
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION include/${PROJECT_NAME}
-  FILES_MATCHING PATTERN "*.hpp"
+install(DIRECTORY include/
+  DESTINATION include/
 )
