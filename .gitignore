@@ -1,0 +1,16 @@
+# Ignore build and bin folders
+build/
+bin/
+lib/
+
+# Ignore cmake files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Ignore temp files
+*.*~
+
+# Ignore Visual Studio Code
+*.vscode/
