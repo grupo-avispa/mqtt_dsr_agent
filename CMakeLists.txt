@@ -18,6 +18,7 @@ endif()
 find_package(Eigen3 3.3 REQUIRED)
 find_package(Qt5 REQUIRED COMPONENTS Core Widgets OpenGL)
 find_package(fastrtps REQUIRED)
+find_package(PahoMqttCpp REQUIRED)
 
 include_directories(
   include
@@ -29,6 +30,7 @@ include_directories(
 # Set QT libraries and DSR libraries
 set(QT_LIBRARIES Qt5::Widgets Qt5::OpenGL Qt5::Core)
 set(DSR_LIBRARIES dsr_api dsr_core dsr_gui fastcdr fastrtps)
+set(PahoMqtt_LIBRARIES pthread crypto ssl paho-mqtt3as paho-mqttpp3)
 
 # Set the names
 set(library_name ${PROJECT_NAME}_core)
@@ -38,6 +40,7 @@ set(executable_name ${PROJECT_NAME})
 set(dependencies
   ${QT_LIBRARIES}
   ${DSR_LIBRARIES}
+  ${PahoMqtt_LIBRARIES}
   Eigen3::Eigen
 )
 

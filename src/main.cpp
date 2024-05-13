@@ -15,9 +15,20 @@
 
 #include "mqtt_dsr_agent/mqtt_agent.hpp"
 
+#include "mqtt/async_client.h"
+#include <string>
+
+const std::string SERVER_ADDRESS("mqtt://localhost:1883");
+const std::string CLIENT_ID("paho_cpp_async_subcribe");
+const std::string TOPIC("hello");
+
+const int	QOS = 1;
+const int	N_RETRY_ATTEMPTS = 5;
+
 int main(int argc, char * argv[])
 {
   QCoreApplication app(argc, argv);
   auto mqtt_agent = std::make_shared<MqttAgent>("mqtt_agent", 1);
+  mqtt::async_client cli(SERVER_ADDRESS, CLIENT_ID);
   return app.exec();
 }
