@@ -24,9 +24,11 @@
 #include "mqtt/async_client.h"
 #include <string>
 
-const std::string SERVER_ADDRESS("mqtt://localhost:1884");
+const std::string SERVER_ADDRESS("mqtt://192.168.0.187:1884");
 const std::string CLIENT_ID("paho_cpp_async_subcribe");
-const std::string TOPIC("sensors");
+const std::string TOPIC("person/distance");
+const std::string TOPIC2("person/vitals");
+const std::string TOPIC3("sensors");
 
 const int	QOS = 1;
 const int	N_RETRY_ATTEMPTS = 5;
@@ -114,6 +116,7 @@ class callback : public virtual mqtt::callback,
 	// (Re)connection success
 	// Either this or connected() can be used for callbacks.
 	void on_success(const mqtt::token& tok) override {
+		std::cout << "Connection Success" << std::endl;
     if (tok.get_message_id() != 0)
 			std::cout << " for token: [" << tok.get_message_id() << "]" << std::endl;
 		std::cout << std::endl;
@@ -130,6 +133,8 @@ class callback : public virtual mqtt::callback,
 			<< "\nPress Q<Enter> to quit\n" << std::endl;
 
 		cli_.subscribe(TOPIC, QOS, nullptr, subListener_);
+		cli_.subscribe(TOPIC2, QOS, nullptr, subListener_);
+		cli_.subscribe(TOPIC3, QOS, nullptr, subListener_);
 	}
 
 	// Callback for when the connection is lost.
