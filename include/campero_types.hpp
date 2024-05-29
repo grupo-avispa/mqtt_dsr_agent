@@ -14,6 +14,7 @@ REGISTER_NODE_TYPE(update_bbdd)
 REGISTER_NODE_TYPE(tracking)
 REGISTER_NODE_TYPE(bring_water)
 REGISTER_NODE_TYPE(person)
+REGISTER_NODE_TYPE(sensor)
 
 // WORLD SENSOR TYPES
 REGISTER_EDGE_TYPE(stopped)
@@ -82,5 +83,6 @@ REGISTER_TYPE(changes, std::string, false)
 // SENSOR types
 REGISTER_TYPE(temperature, float, false); // (name,type,false)
 REGISTER_TYPE(media, float, false)
+REGISTER_TYPE(distance, float, false)
 
 #endif // CAMPERO_TYPES_HPP_

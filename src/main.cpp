@@ -24,7 +24,12 @@
 #include "mqtt/async_client.h"
 #include <string>
 
-const std::string SERVER_ADDRESS("mqtt://192.168.0.187:1884");
+#include "json.hpp"
+#include "json_fwd.hpp"
+
+using json = nlohmann::json;	
+
+const std::string SERVER_ADDRESS("mqtt://192.168.0.117:1883");
 const std::string CLIENT_ID("paho_cpp_async_subcribe");
 const std::string TOPIC("person/distance");
 const std::string TOPIC2("person/vitals");
@@ -149,11 +154,27 @@ class callback : public virtual mqtt::callback,
 		reconnect();
 	}
 
+	float media = 0.0f;
+	unsigned int valores = 0; 
+
 	// Callback for when a message arrives.
 	void message_arrived(mqtt::const_message_ptr msg) override {
-		std::cout << "Message arrived" << std::endl;
-		std::cout << "\ttopic: '" << msg->get_topic() << "'" << std::endl;
+		std::cout << "Message arrived" << "'\n";
+		std::cout << "\ttopic: '" << msg->get_topic() << "'\n";
 		std::cout << "\tpayload: '" << msg->to_string() << "'\n" << std::endl;
+		
+		// caso en el que recibimos distancia
+		if (msg->get_topic() == "person/distance") {
+			json j = json::parse(msg->get_payload_str());
+			float distancia = j["distance"].get<float>(); 
+			if (distancia != -1) {
+				media = (media*valores + distancia)/(valores+1);
+				valores++;
+				std::cout << "Distancia media: '" << media << "'\n" << std::endl;
+			}
+			media = (valores > 20) ? 0:media;
+			valores = (valores > 20) ? 0:valores;
+		}
 	}
 
 	// void delivery_complete(mqtt::delivery_token_ptr token) override {
