@@ -13,10 +13,9 @@ REGISTER_NODE_TYPE(show)
 REGISTER_NODE_TYPE(update_bbdd)
 REGISTER_NODE_TYPE(tracking)
 REGISTER_NODE_TYPE(bring_water)
+REGISTER_NODE_TYPE(person)
 
-//WORLD SENSOR TYPES
-REGISTER_NODE_TYPE(sensor_name)
-
+// WORLD SENSOR TYPES
 REGISTER_EDGE_TYPE(stopped)
 REGISTER_EDGE_TYPE(is)
 REGISTER_EDGE_TYPE(is_performing)
@@ -73,6 +72,8 @@ REGISTER_TYPE(activities, std::string, false)
 REGISTER_TYPE(tracking_enable, bool, false)
 REGISTER_TYPE(neuron, bool, false)
 REGISTER_TYPE(accuracy, float, false)
+REGISTER_TYPE(distance, float, false)
+REGISTER_TYPE(media, float, false)
 
 // BBDD types
 REGISTER_TYPE(bbdd_agent, std::string, false)
@@ -80,5 +81,6 @@ REGISTER_TYPE(changes, std::string, false)
 
 // SENSOR types
 REGISTER_TYPE(temperature, float, false); // (name,type,false)
+REGISTER_TYPE(media, float, false)
 
 #endif // CAMPERO_TYPES_HPP_
