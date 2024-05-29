@@ -39,6 +39,15 @@ public:
   void node_deleted(std::uint64_t id);
   void edge_deleted(std::uint64_t from, std::uint64_t to, const std::string & edge_tag);
 
+  template <typename node_type>
+  void insert_node<node_type>(const std::string & name);
+
+  template <typename edge_type>
+  void insert_edge<edge_type>(const std::string & from, const std::string & to);
+
+  template <typename att_type, typename value_type>
+  void insert_attribute<att_type>(const std::string & node, const value_type & value);
+
 private:
   std::string agent_name_;
   int agent_id_;
