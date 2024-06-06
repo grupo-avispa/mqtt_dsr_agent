@@ -24,8 +24,7 @@
 #include "mqtt/async_client.h"
 #include <string>
 
-#include "json.hpp"
-#include "json_fwd.hpp"
+#include "nlohmann/json.hpp"
 
 using json = nlohmann::json;	
 
