@@ -24,18 +24,20 @@
 #include "mqtt/async_client.h"
 #include <string>
 
-#include "nlohmann/json.hpp"
+#include "json.hpp"
+#include "json_fwd.hpp"
 
 using json = nlohmann::json;	
 
 const std::string SERVER_ADDRESS("mqtt://192.168.0.117:1883");
 const std::string CLIENT_ID("paho_cpp_async_subcribe");
-const std::string TOPIC("person/distance");
-const std::string TOPIC2("person/vitals");
-const std::string TOPIC3("sensors");
+const std::string TOPIC1("cma/person/positional");
+const std::string TOPIC2("cma/person/vitals");
 
 const int	QOS = 1;
 const int	N_RETRY_ATTEMPTS = 5;
+
+auto mqtt_agent = std::make_shared<MqttAgent>("mqtt_agent", 111);
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -131,14 +133,14 @@ class callback : public virtual mqtt::callback,
     if (!cause.empty())
 			std::cout << "\tcause: " << cause << std::endl;
 		std::cout << "\nConnection success" << std::endl;
-		std::cout << "\nSubscribing to topic '" << TOPIC << "'\n"
+		std::cout << "\nSubscribing to topics '" << TOPIC1 << "', \t'"
+			<< TOPIC2 << "'\n"
 			<< "\tfor client " << CLIENT_ID
 			<< " using QoS" << QOS << "\n"
 			<< "\nPress Q<Enter> to quit\n" << std::endl;
 
-		cli_.subscribe(TOPIC, QOS, nullptr, subListener_);
+		cli_.subscribe(TOPIC1, QOS, nullptr, subListener_);
 		cli_.subscribe(TOPIC2, QOS, nullptr, subListener_);
-		cli_.subscribe(TOPIC3, QOS, nullptr, subListener_);
 	}
 
 	// Callback for when the connection is lost.
@@ -152,17 +154,22 @@ class callback : public virtual mqtt::callback,
 		nretry_ = 0;
 		reconnect();
 	}
-
+	/*
 	float media = 0.0f;
 	unsigned int valores = 0; 
+	*/
 
 	// Callback for when a message arrives.
 	void message_arrived(mqtt::const_message_ptr msg) override {
+
+		/*
 		std::cout << "Message arrived" << "'\n";
 		std::cout << "\ttopic: '" << msg->get_topic() << "'\n";
 		std::cout << "\tpayload: '" << msg->to_string() << "'\n" << std::endl;
-		
-		// caso en el que recibimos distancia
+		*/
+
+		// media de distancia
+		/*
 		if (msg->get_topic() == "person/distance") {
 			json j = json::parse(msg->get_payload_str());
 			float distancia = j["distance"].get<float>(); 
@@ -174,8 +181,47 @@ class callback : public virtual mqtt::callback,
 			media = (valores > 20) ? 0:media;
 			valores = (valores > 20) ? 0:valores;
 		}
-	}
+		*/
 
+		if (msg->get_topic() == "cma/person/positional") {
+			json j = json::parse(msg->get_payload_str());
+			float distancia = j["distance"].get<float>();
+			float time_stamp = j["timestamp"].get<int>();
+			std::cout << "Detected person\n"
+				<< "At program time: " << time_stamp << "ms \n" 
+				<< "At: " << distancia << "m" << std::endl;
+			// Insertar las cosas de los nodos cuando hay una persona interacting
+			if(mqtt_agent->person_node.has_value() && mqtt_agent->control){
+				mqtt_agent->insert_attribute<distancia_att, float>(mqtt_agent->person_node.value().name(), distancia);
+				mqtt_agent->insert_attribute<distanciaTime_att, int>(mqtt_agent->person_node.value().name(), time_stamp);
+			}
+		}
+		
+		if (msg->get_topic() == "cma/person/vitals") {
+			json j = json::parse(msg->get_payload_str());
+			int numero_datos = j["data_size"].get<int>();
+			std::cout << "Vital sings red." 
+				<< numero_datos << " Samples Taken" << std::endl;
+			for (int i = 0; i < numero_datos; i++) {
+				std::string sample_id = "sample "+std::to_string(i);
+				const auto& sample = j[sample_id];
+				float timestamp = sample["timestamp"].get<int>();
+				float heart = sample["heartrate"].get<float>();
+				float breath = sample["breathrate"].get<float>();
+				std::cout << "Sample " << i << "\n" 
+					<< "Time " << timestamp << "\n"
+					<< "Heart Rate " << heart << "\n"
+					<< "Breath Rate " << breath << std::endl;
+				
+				// Insertar las cosas de los nodos cuando hay una persona interacting
+				if(mqtt_agent->person_node.has_value() && mqtt_agent->control){
+					mqtt_agent->insert_attribute<heartRate_att, float>(mqtt_agent->person_node.value().name(), heart);
+					mqtt_agent->insert_attribute<breathRate_att, float>(mqtt_agent->person_node.value().name(), breath);
+					mqtt_agent->insert_attribute<vitalsTime_att, int>(mqtt_agent->person_node.value().name(), timestamp);
+				}
+			}  
+		}
+	}
 	// void delivery_complete(mqtt::delivery_token_ptr token) override {
   //   if (token.msg)
 	// 		std::cout << "\tcause: " << cause << std::endl;
@@ -188,13 +234,21 @@ public:
 
 /////////////////////////////////////////////////////////////////////////////
 
+
 int main(int argc, char* argv[])
 {
 
   QCoreApplication app(argc, argv);
   std::cout << "Initialize graph" << std::endl;
 
-  auto mqtt_agent = std::make_shared<MqttAgent>("mqtt_agent", 111);
+
+  mqtt_agent->insert_node<carlos_sensor_node_type>("sensor_carlos");
+  mqtt_agent->insert_edge<has_edge_type>("sensor_carlos", "robot");
+  mqtt_agent->insert_attribute<distancia_att, float>("sensor_carlos", 0.0f);
+  mqtt_agent->insert_attribute<distanciaTime_att, int>("sensor_carlos", 0.0f);
+  mqtt_agent->insert_attribute<heartRate_att, float>("sensor_carlos", 0.0f);
+  mqtt_agent->insert_attribute<breathRate_att, float>("sensor_carlos", 0.0f);
+  mqtt_agent->insert_attribute<vitalsTime_att, int>("sensor_carlos", 0.0f);
 
 	// A subscriber often wants the server to remember its messages when its
 	// disconnected. In that case, it needs a unique ClientID and a
@@ -211,6 +265,9 @@ int main(int argc, char* argv[])
 	callback cb(cli, connOpts);
 	cli.set_callback(cb);
 
+	/*
+	mqtt_agent->insert_attribute<distancia_att_type, float>("CMA_Sesor", "float");
+*/
 	// Start the connection.
 	// When completed, the callback will subscribe to topic.
 

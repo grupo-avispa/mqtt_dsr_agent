@@ -20,6 +20,7 @@
 #include <QObject>
 
 #include "dsr/api/dsr_api.h"
+#include "../include/mqtt_dsr_agent/campero_types.hpp"
 
 class MqttAgent : public QObject
 {
@@ -39,10 +40,10 @@ public:
   void node_deleted(std::uint64_t id);
   void edge_deleted(std::uint64_t from, std::uint64_t to, const std::string & edge_tag);
 
-  // Functions to 'send' data to the DSR graph
-template <typename node_type>
-void insert_node(const std::string &name)
-{
+  template <typename node_type>
+  void insert_node(const std::string & name){
+  //esto lo acabo de copiar de mqtt_agent.cpp, antes había un ; despues de name)
+  
   auto new_node = DSR::Node::create<node_type>(name);
   if (auto id = G_->insert_node(new_node); id.has_value()){
     std::cout << "Node " << name << " inserted with id " << id.value() << std::endl;
@@ -74,6 +75,9 @@ void insert_attribute(const std::string & node, const value_type & att_value)
     std::cout << "Attribute " << att_value << " inserted in node " << node << std::endl;
   }
 }
+
+std::optional<DSR::Node> person_node;
+bool control;
 
 private:
   std::string agent_name_;
