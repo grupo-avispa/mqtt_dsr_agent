@@ -29,7 +29,7 @@
 
 using json = nlohmann::json;	
 
-const std::string SERVER_ADDRESS("mqtt://192.168.0.117:1883");
+const std::string SERVER_ADDRESS("mqtt://192.168.0.140:1884");
 const std::string CLIENT_ID("paho_cpp_async_subcribe");
 const std::string TOPIC1("cma/person/positional");
 const std::string TOPIC2("cma/person/vitals");
@@ -186,12 +186,13 @@ class callback : public virtual mqtt::callback,
 		if (msg->get_topic() == "cma/person/positional") {
 			json j = json::parse(msg->get_payload_str());
 			float distancia = j["distance"].get<float>();
-			float time_stamp = j["timestamp"].get<int>();
+			int time_stamp = j["timestamp"].get<int>();
 			std::cout << "Detected person\n"
 				<< "At program time: " << time_stamp << "ms \n" 
 				<< "At: " << distancia << "m" << std::endl;
 			// Insertar las cosas de los nodos cuando hay una persona interacting
 			if(mqtt_agent->person_node.has_value() && mqtt_agent->control){
+				std::cout << "Insert attribute to person: " << mqtt_agent->person_node.value().name() << std::endl;
 				mqtt_agent->insert_attribute<distancia_att, float>(mqtt_agent->person_node.value().name(), distancia);
 				mqtt_agent->insert_attribute<distanciaTime_att, int>(mqtt_agent->person_node.value().name(), time_stamp);
 			}
@@ -242,13 +243,13 @@ int main(int argc, char* argv[])
   std::cout << "Initialize graph" << std::endl;
 
 
-  mqtt_agent->insert_node<carlos_sensor_node_type>("sensor_carlos");
-  mqtt_agent->insert_edge<has_edge_type>("sensor_carlos", "robot");
-  mqtt_agent->insert_attribute<distancia_att, float>("sensor_carlos", 0.0f);
-  mqtt_agent->insert_attribute<distanciaTime_att, int>("sensor_carlos", 0.0f);
-  mqtt_agent->insert_attribute<heartRate_att, float>("sensor_carlos", 0.0f);
-  mqtt_agent->insert_attribute<breathRate_att, float>("sensor_carlos", 0.0f);
-  mqtt_agent->insert_attribute<vitalsTime_att, int>("sensor_carlos", 0.0f);
+//   mqtt_agent->insert_node<carlos_sensor_node_type>("sensor_carlos");
+//   mqtt_agent->insert_edge<has_edge_type>("sensor_carlos", "robot");
+//   mqtt_agent->insert_attribute<distancia_att, float>("sensor_carlos", 0.0f);
+//   mqtt_agent->insert_attribute<distanciaTime_att, int>("sensor_carlos", 0.0f);
+//   mqtt_agent->insert_attribute<heartRate_att, float>("sensor_carlos", 0.0f);
+//   mqtt_agent->insert_attribute<breathRate_att, float>("sensor_carlos", 0.0f);
+//   mqtt_agent->insert_attribute<vitalsTime_att, int>("sensor_carlos", 0.0f);
 
 	// A subscriber often wants the server to remember its messages when its
 	// disconnected. In that case, it needs a unique ClientID and a
@@ -281,23 +282,17 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	// Just block till user tells us to quit.
+	// // Disconnect
 
-	while (std::tolower(std::cin.get()) != 'q')
-		;
-
-	// Disconnect
-
-	try {
-		std::cout << "\nDisconnecting from the MQTT server..." << std::flush;
-		cli.disconnect()->wait();
-		std::cout << "OK" << std::endl;
-	}
-	catch (const mqtt::exception& exc) {
-		std::cerr << exc << std::endl;
-		return 1;
-	}
+	// try {
+	// 	std::cout << "\nDisconnecting from the MQTT server..." << std::flush;
+	// 	cli.disconnect()->wait();
+	// 	std::cout << "OK" << std::endl;
+	// }
+	// catch (const mqtt::exception& exc) {
+	// 	std::cerr << exc << std::endl;
+	// 	return 1;
+	// }
 
  	return app.exec();
 }
-

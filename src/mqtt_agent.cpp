@@ -18,6 +18,12 @@
 MqttAgent::MqttAgent(std::string agent_name, int agent_id)
 : agent_name_(agent_name), agent_id_(agent_id)
 {
+// Register types
+  qRegisterMetaType<uint64_t>("uint64_t");
+  qRegisterMetaType<std::string>("std::string");
+  qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
+  qRegisterMetaType<DSR::SignalInfo>("DSR::SignalInfo");
+
   G_ = std::make_shared<DSR::DSRGraph>(agent_name, agent_id, "");
 
   // Add connection signals
