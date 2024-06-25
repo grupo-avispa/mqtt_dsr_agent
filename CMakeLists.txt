@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.5)
 project(mqtt_dsr_agent)
 
+include(cmake/pahomqtt.cmake)
+
 # Default to C++20
 if(NOT CMAKE_CXX_STANDARD)
   if("cxx_std_20" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
@@ -11,20 +13,20 @@ if(NOT CMAKE_CXX_STANDARD)
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic -Werror -Wdeprecated -fPIC -Wshadow -Wnull-dereference)
+  add_compile_options(-Wall -Wextra -Werror -Wdeprecated -fPIC -Wshadow -Wnull-dereference)
   add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:-Wnon-virtual-dtor>")
 endif()
 
 find_package(Eigen3 3.3 REQUIRED)
 find_package(Qt5 REQUIRED COMPONENTS Core Widgets OpenGL)
 find_package(fastrtps REQUIRED)
-find_package(PahoMqttCpp REQUIRED)
 
 include_directories(
   include
   ${QT_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIR}
   ${fastrtps_INCLUDE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}/paho_mqtt_cpp-src/include
 )
 
 # Set QT libraries and DSR libraries
