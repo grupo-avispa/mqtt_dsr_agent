@@ -1,0 +1,15 @@
+stages:
+  - build
+
+image: grupoavispa/robocomp:development__dsr__latest
+
+before_script:
+  - DEBIAN_FRONTEND=noninteractive sudo apt-get update
+
+build:
+  stage: build
+  script:
+    - sudo apt-get install -y cmake g++ make git openssl libssl-dev
+    - mkdir build && cd build
+    - cmake ..
+    - make
