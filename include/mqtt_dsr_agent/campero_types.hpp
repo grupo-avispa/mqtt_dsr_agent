@@ -91,6 +91,8 @@ REGISTER_TYPE(distanciaTime, int, false)
 REGISTER_TYPE(heartRate, float, false)
 REGISTER_TYPE(breathRate, float, false)
 REGISTER_TYPE(vitalsTime, int, false)
+REGISTER_TYPE(heartRate2, std::string, false)
+REGISTER_TYPE(breathRate2, std::string, false)
 
 
 

@@ -79,6 +79,25 @@ void MqttAgent::edge_updated(std::uint64_t from, std::uint64_t to, const std::st
         std::cout << "Robot interacting with " << person_node.value().name() << std::endl;
       }
   }
+
+  if (type == "in"){
+    auto room_node = G_->get_node(to);
+    auto prob_person_node = G_->get_node(from);
+    if(room_node.has_value() && room_node.value().name() == "bed"
+      && prob_person_node.has_value() && prob_person_node.value().type() == "person"){
+        control = true;
+        person_node = prob_person_node;
+        std::string command = "mosquitto_pub -h 192.168.0.140 -p 1883 -t \"Sensor/Control\" -m \"OnSensor\"";
+        system(command.c_str());
+        std::cout << "Person" << person_node.value().name() << std::endl;
+    }
+    else if(room_node.has_value() && room_node.value().name() == "bathroom"
+      && prob_person_node.has_value() && prob_person_node.value().type() == "person"){
+        control = true;
+        person_node = prob_person_node;
+        std::cout << "Person" << person_node.value().name() << " in bathroom" << std::endl;
+    }
+  }
 }
 
 void MqttAgent::edge_attributes_updated(
@@ -96,6 +115,13 @@ void MqttAgent::edge_deleted(std::uint64_t from, std::uint64_t to, const std::st
   if (edge_tag == "interacting"){
     std::cout << "Delete edge interacting between " << from << " and " << to << std::endl;
     person_node = {};
+    control = false;
+  }
+  if (edge_tag == "in"){
+    std::cout << "Delete edge in between " << from << " and " << to << std::endl;
+    person_node = {};
+    std::string command = "mosquitto_pub -h 192.168.0.140 -p 1883 -t \"Sensor/Control\" -m \"OffSensor\"";
+    system(command.c_str());
     control = false;
   }
 }

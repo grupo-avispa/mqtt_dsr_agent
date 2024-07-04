@@ -29,10 +29,12 @@
 
 using json = nlohmann::json;	
 
-const std::string SERVER_ADDRESS("mqtt://192.168.0.140:1884");
+const std::string SERVER_ADDRESS("mqtt://192.168.0.140:1883");
 const std::string CLIENT_ID("paho_cpp_async_subcribe");
 const std::string TOPIC1("cma/person/positional");
 const std::string TOPIC2("cma/person/vitals");
+const std::string TOPIC3("Sensor/HR");
+const std::string TOPIC4("Sensor/BR");
 
 const int	QOS = 1;
 const int	N_RETRY_ATTEMPTS = 5;
@@ -190,12 +192,24 @@ class callback : public virtual mqtt::callback,
 			std::cout << "Detected person\n"
 				<< "At program time: " << time_stamp << "ms \n" 
 				<< "At: " << distancia << "m" << std::endl;
-			// Insertar las cosas de los nodos cuando hay una persona interacting
-			if(mqtt_agent->person_node.has_value() && mqtt_agent->control){
-				std::cout << "Insert attribute to person: " << mqtt_agent->person_node.value().name() << std::endl;
+			// Sensor colocado en el baño --> Detecta persona [person in bathroom]
+			if(mqtt_agent->person_node.has_value() && mqtt_agent->control){ // persona ya está en el baño
 				mqtt_agent->insert_attribute<distancia_att, float>(mqtt_agent->person_node.value().name(), distancia);
 				mqtt_agent->insert_attribute<distanciaTime_att, int>(mqtt_agent->person_node.value().name(), time_stamp);
+			} else { // Insertamos persona en el baño
+				mqtt_agent->insert_node<person_node_type>("person");
+				mqtt_agent->insert_edge<in_edge_type>("person", "bathroom");
+				mqtt_agent->insert_attribute<distancia_att, float>("person", distancia);
+				mqtt_agent->insert_attribute<distanciaTime_att, int>("person", time_stamp);
 			}
+			
+
+			// Insertar las cosas de los nodos cuando hay una persona interacting
+			//if(mqtt_agent->person_node.has_value() && mqtt_agent->control){
+				//std::cout << "Insert attribute to person: " << mqtt_agent->person_node.value().name() << std::endl;
+				// mqtt_agent->insert_attribute<distancia_att, float>(mqtt_agent->person_node.value().name(), distancia);
+				// mqtt_agent->insert_attribute<distanciaTime_att, int>(mqtt_agent->person_node.value().name(), time_stamp);
+			//}
 		}
 		
 		if (msg->get_topic() == "cma/person/vitals") {
@@ -216,11 +230,19 @@ class callback : public virtual mqtt::callback,
 				
 				// Insertar las cosas de los nodos cuando hay una persona interacting
 				if(mqtt_agent->person_node.has_value() && mqtt_agent->control){
-					mqtt_agent->insert_attribute<heartRate_att, float>(mqtt_agent->person_node.value().name(), heart);
-					mqtt_agent->insert_attribute<breathRate_att, float>(mqtt_agent->person_node.value().name(), breath);
-					mqtt_agent->insert_attribute<vitalsTime_att, int>(mqtt_agent->person_node.value().name(), timestamp);
+					// mqtt_agent->insert_attribute<heartRate_att, float>(mqtt_agent->person_node.value().name(), heart);
+					// mqtt_agent->insert_attribute<breathRate_att, float>(mqtt_agent->person_node.value().name(), breath);
+					// mqtt_agent->insert_attribute<vitalsTime_att, int>(mqtt_agent->person_node.value().name(), timestamp);
 				}
 			}  
+		}
+
+		if (msg->get_topic() == "Sensor/HR") {
+			if(mqtt_agent->person_node.has_value() && mqtt_agent->control){
+				std::string hr = msg->get_payload_str();
+				mqtt_agent->insert_attribute<heartRate2_att, std::string>(mqtt_agent->person_node.value().name(), hr);
+				//mqtt_agent->insert_attribute<breathRate_att, float>(mqtt_agent->person_node.value().name(), breath);
+			}
 		}
 	}
 	// void delivery_complete(mqtt::delivery_token_ptr token) override {
