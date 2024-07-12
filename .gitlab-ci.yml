@@ -1,7 +1,7 @@
 stages:
   - build
 
-image: grupoavispa/robocomp:development__dsr__latest
+image: grupoavispa/cortex:development-latest
 
 before_script:
   - DEBIAN_FRONTEND=noninteractive sudo apt-get update
