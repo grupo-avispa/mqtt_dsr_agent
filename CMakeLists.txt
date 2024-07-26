@@ -20,6 +20,7 @@ endif()
 find_package(Eigen3 3.3 REQUIRED)
 find_package(Qt5 REQUIRED COMPONENTS Core Widgets OpenGL)
 find_package(fastrtps REQUIRED)
+find_package(nlohmann_json 3.2.0 REQUIRED)
 
 include_directories(
   include
@@ -39,11 +40,13 @@ set(library_name ${PROJECT_NAME}_core)
 set(executable_name ${PROJECT_NAME})
 
 # Set  dependencies
-set(dependencies
+set(dependencies PUBLIC
   ${QT_LIBRARIES}
   ${DSR_LIBRARIES}
-  ${PahoMqtt_LIBRARIES}
   Eigen3::Eigen
+  ${PahoMqtt_LIBRARIES}
+  PRIVATE
+  nlohmann_json::nlohmann_json
 )
 
 # Set the headers
@@ -59,6 +62,10 @@ qt5_wrap_cpp(qt_moc ${headers}
 
 # Add library
 add_library(${library_name} SHARED src/mqtt_agent.cpp)
+target_include_directories(${library_name} PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
 target_link_libraries(${library_name} ${dependencies})
 target_sources(${library_name} PRIVATE ${qt_moc})
 

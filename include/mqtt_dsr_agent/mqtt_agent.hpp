@@ -16,21 +16,74 @@
 #ifndef MQTT_AGENT_HPP_
 #define MQTT_AGENT_HPP_
 
+#include <iostream>
+#include <memory>
+#include <string>
+
 // Qt
 #include <QObject>
 
 #include "dsr/api/dsr_api.h"
-#include "../include/mqtt_dsr_agent/campero_types.hpp"
+#include "mqtt/async_client.h"
+#include "mqtt_dsr_agent/campero_types.hpp"
 
-class MqttAgent : public QObject
+/**
+ * @class MqttAgent
+ * @brief Class to manage the communication between the DSR graph and the MQTT broker
+ */
+class MqttAgent : public QObject, public virtual mqtt::callback,
+  public virtual mqtt::iaction_listener
 {
   Q_OBJECT
 
 public:
-  explicit MqttAgent(std::string agent_name, int agent_id);
+  /**
+   * @brief Construct a new Mqtt Agent object
+   *
+   * @param agent_name Name of the agent
+   * @param agent_id Id of the agent
+   * @param server_address Address of the MQTT broker
+   * @param client_id Id of the MQTT client
+   */
+  MqttAgent(
+    const std::string agent_name, int agent_id,
+    const std::string & server_address, const std::string & client_id);
+
+  /**
+   * @brief Destructor
+   */
   ~MqttAgent();
 
-  // DSR callbacks
+  /**
+   * @brief Set the credentials for the MQTT broker
+   *
+   * @param username Username
+   * @param password Password
+   */
+  void set_credentials(const std::string & username, const std::string & password);
+
+  /**
+   * @brief Connect to the MQTT broker
+   *
+   * @return bool if the connection is successful
+   */
+  bool connect();
+
+  /**
+   * @brief Disconnect from the MQTT broker
+   */
+  void disconnect();
+
+  /**
+   * @brief Set the topics to subscribe
+   *
+   * @param topics Topics to subscribe
+   */
+  void set_topics(const std::vector<std::string> & topics);
+
+private:
+  /* ----------------------------------------  DSR  -------------------- -------------------- */
+  // DSR callbacks called when the DSR graph is changed
   void node_updated(std::uint64_t id, const std::string & type);
   void node_attributes_updated(uint64_t id, const std::vector<std::string> & att_names);
   void edge_updated(std::uint64_t from, std::uint64_t to, const std::string & type);
@@ -40,49 +93,68 @@ public:
   void node_deleted(std::uint64_t id);
   void edge_deleted(std::uint64_t from, std::uint64_t to, const std::string & edge_tag);
 
-  template <typename node_type>
-  void insert_node(const std::string & name){
-  //esto lo acabo de copiar de mqtt_agent.cpp, antes había un ; despues de name)
-  
-  auto new_node = DSR::Node::create<node_type>(name);
-  if (auto id = G_->insert_node(new_node); id.has_value()){
-    std::cout << "Node " << name << " inserted with id " << id.value() << std::endl;
-  }
-}
+  /* ----------------------------------------  MQTT  -------------------- -------------------- */
 
-template <typename edge_type>
-void insert_edge(const std::string &from, const std::string &to)
-{
-  // Get the relatives nodes
-  auto parent_node = G_->get_node(from);
-  auto child_node = G_->get_node(to);
-  if (parent_node.has_value()){
-    if (child_node.has_value()){
-      auto new_edge = DSR::Edge::create<edge_type>(parent_node.value().id(), child_node.value().id());
-      if (G_->insert_or_assign_edge(new_edge)){
-        std::cout << "Edge from " << from << " to " << to << " inserted" << std::endl;
-      }
-    }
-  }
-}
+  /**
+   * @brief Reconnect to the broker manually by calling connect() again.
+   *
+   * @param delay Time to wait before reconnecting
+   */
+  void reconnect(int delay);
 
-template <typename att_type, typename value_type>
-void insert_attribute(const std::string & node, const value_type & att_value)
-{
-  if (auto new_node = G_->get_node(node); new_node.has_value()){
-    G_->add_or_modify_attrib_local<att_type>(new_node.value(), att_value);
-    G_->update_node(new_node.value());
-    std::cout << "Attribute " << att_value << " inserted in node " << node << std::endl;
-  }
-}
+  /**
+   * @brief Callback for when the reconnection attempt is successful.
+   *
+   * @param tok Token for the reconnection attempt
+   */
+  void on_success(const mqtt::token & tok) override;
 
-std::optional<DSR::Node> person_node;
-bool control;
+  /**
+   * @brief Callback for when the reconnection attempt fails.
+   *
+   * @param tok Token for the reconnection attempt
+   */
+  void on_failure(const mqtt::token & tok) override;
 
-private:
+  /**
+   * @brief Callback for when the connection is successful.
+   *
+   * @param cause Cause of the connection
+   */
+  void connected(const std::string & cause) override;
+
+  /**
+   * @brief Callback for when the connection is lost.
+   * This will initiate the attempt to manually reconnect.
+   *
+   * @param cause Cause of the connection loss
+   */
+  void connection_lost(const std::string & cause) override;
+
+  /**
+   * @brief Callback for when a message arrives.
+   *
+   * @param msg Message received
+   */
+  void message_arrived(mqtt::const_message_ptr msg) override;
+
+  // DSR graph
   std::string agent_name_;
   int agent_id_;
   std::shared_ptr<DSR::DSRGraph> G_;
+
+  // The MQTT client
+  mqtt::async_client client_;
+  // Options to use if we need to reconnect
+  mqtt::connect_options conn_options_;
+  // Counter for the number of connection retries
+  int nretry_;
+  // QoS to subscribe
+  const int QOS = 1;
+  // Number of connection retries
+  const int N_RETRY_ATTEMPTS = 5;
+
+  std::vector<std::string> topics_;
 };
 
 #endif  // MQTT_AGENT_HPP_
