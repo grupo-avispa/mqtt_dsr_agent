@@ -9,7 +9,7 @@ before_script:
 build:
   stage: build
   script:
-    - sudo apt-get install -y cmake g++ make git openssl libssl-dev
+    - sudo apt-get install -y cmake g++ make git openssl libssl-dev nlohmann-json3-dev
     - mkdir build && cd build
     - cmake ..
     - make
