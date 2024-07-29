@@ -155,6 +155,10 @@ private:
   const int N_RETRY_ATTEMPTS = 5;
 
   std::vector<std::string> topics_;
+
+  std::optional<DSR::Node> person_node;
+  bool control;
+  
 };
 
 #endif  // MQTT_AGENT_HPP_

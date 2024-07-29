@@ -127,6 +127,7 @@ void MqttAgent::edge_updated(
       && prob_person_node.has_value() && prob_person_node.value().type() == "person"){
         control = true;
         person_node = prob_person_node;
+        //TODO: REPLACE THE COMMAND WITH THE PUBLISH FUNCTION OF THE LIBRARY
         std::string command = "mosquitto_pub -h 192.168.0.140 -p 1883 -t \"Sensor/Control\" -m \"OnSensor\"";
         system(command.c_str());
         std::cout << "Person" << person_node.value().name() << std::endl;
@@ -150,9 +151,27 @@ void MqttAgent::node_deleted(std::uint64_t /*id*/)
 {
 }
 
-void MqttAgent::edge_deleted(
-  std::uint64_t /* from*/, std::uint64_t /*to*/, const std::string & /*edge_tag*/)
+void MqttAgent::edge_deleted(std::uint64_t from, std::uint64_t to, const std::string & edge_tag)
 {
+  if (edge_tag == "interacting"){
+    std::cout << "Delete edge interacting between " << from << " and " << to << std::endl;
+    person_node = {};
+    control = false;
+  }
+  if (edge_tag == "in"){
+    std::cout << "Delete edge in between " << from << " and " << to << std::endl;
+    auto from_node = G_->get_node(from);
+    auto to_node = G_->get_node(to);
+    if(from_node.has_value() && from_node.value().type() == "person" &&
+      to_node.has_value() && to_node.value().name() == "bed"){
+        std::cout << "Delete person in bed" << std::endl;
+        person_node = {};
+        //TODO: REPLACE THE COMMAND WITH THE PUBLISH FUNCTION OF THE LIBRARY
+        std::string command = "mosquitto_pub -h 192.168.0.140 -p 1883 -t \"Sensor/Control\" -m \"OffSensor\"";
+        system(command.c_str());
+        control = false;
+      }
+  }
 }
 
 /* ----------------------------------------  MQTT -------------------- -------------------- */
@@ -165,13 +184,6 @@ void MqttAgent::reconnect(int delay)
   } catch (const mqtt::exception & exc) {
     std::cerr << "Error: " << exc.what() << std::endl;
     exit(1);
-  }
-  if (edge_tag == "in"){
-    std::cout << "Delete edge in between " << from << " and " << to << std::endl;
-    person_node = {};
-    std::string command = "mosquitto_pub -h 192.168.0.140 -p 1883 -t \"Sensor/Control\" -m \"OffSensor\"";
-    system(command.c_str());
-    control = false;
   }
 }
 

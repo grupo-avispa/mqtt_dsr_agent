@@ -18,7 +18,7 @@
 
 #include "mqtt_dsr_agent/mqtt_agent.hpp"
 
-const std::string SERVER_ADDRESS("mqtt://192.168.0.140:1883");
+const std::string SERVER_ADDRESS("mqtt://192.168.0.199:1883");
 const std::string CLIENT_ID("paho_cpp_async_subcribe");
 const std::string TOPIC1("cma/person/positional");
 const std::string TOPIC2("cma/person/vitals");
