@@ -127,9 +127,8 @@ void MqttAgent::edge_updated(
       && prob_person_node.has_value() && prob_person_node.value().type() == "person"){
         control = true;
         person_node = prob_person_node;
-        //TODO: REPLACE THE COMMAND WITH THE PUBLISH FUNCTION OF THE LIBRARY
-        std::string command = "mosquitto_pub -h 192.168.0.140 -p 1883 -t \"Sensor/Control\" -m \"OnSensor\"";
-        system(command.c_str());
+        const char* payload = "OnSensor";
+        client_.publish("Sensor/Control", payload, strlen(payload), QOS, false);
         std::cout << "Person" << person_node.value().name() << std::endl;
     }
     else if(room_node.has_value() && room_node.value().name() == "bathroom"
@@ -166,9 +165,8 @@ void MqttAgent::edge_deleted(std::uint64_t from, std::uint64_t to, const std::st
       to_node.has_value() && to_node.value().name() == "bed"){
         std::cout << "Delete person in bed" << std::endl;
         person_node = {};
-        //TODO: REPLACE THE COMMAND WITH THE PUBLISH FUNCTION OF THE LIBRARY
-        std::string command = "mosquitto_pub -h 192.168.0.140 -p 1883 -t \"Sensor/Control\" -m \"OffSensor\"";
-        system(command.c_str());
+        const char* payload = "OffSensor";
+        client_.publish("Sensor/Control", payload, strlen(payload), QOS, false);
         control = false;
       }
   }
