@@ -63,8 +63,8 @@ qt5_wrap_cpp(qt_moc ${headers}
 # Add library
 add_library(${library_name} SHARED src/mqtt_agent.cpp)
 target_include_directories(${library_name} PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
+  "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
 )
 target_link_libraries(${library_name} ${dependencies})
 target_sources(${library_name} PRIVATE ${qt_moc})
