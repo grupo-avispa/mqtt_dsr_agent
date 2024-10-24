@@ -18,20 +18,15 @@
 
 #include "mqtt_dsr_agent/mqtt_agent.hpp"
 
-const std::string SERVER_ADDRESS("mqtt://192.168.0.199:1883");
-const std::string CLIENT_ID("paho_cpp_async_subcribe");
-const std::string TOPIC1("cma/person/positional");
-const std::string TOPIC2("cma/person/vitals");
-const std::string TOPIC3("Sensor/HR");
-const std::string TOPIC4("Sensor/BR");
-
 int main(int argc, char * argv[])
 {
   QCoreApplication app(argc, argv);
-
-  auto mqtt_agent = std::make_shared<MqttAgent>("mqtt_dsr_agent", 111, SERVER_ADDRESS, CLIENT_ID);
-  // mqtt_agent->set_credentials("user", "password");
-  mqtt_agent->set_topics({TOPIC1, TOPIC2});
+  if(argc != 2){
+      std::cerr << "Error calling the executable, try:" << 
+      " <./build/mqtt_dsr_agent path_to_this_directory/etc/config>" << std::endl;
+      return -1;
+  }
+  auto mqtt_agent = std::make_shared<MqttAgent>(argv[1]);
   mqtt_agent->connect();
   return app.exec();
 }

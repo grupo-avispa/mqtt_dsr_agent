@@ -93,25 +93,16 @@ REGISTER_TYPE(accuracy, float, false)
 REGISTER_TYPE(bbdd_agent, std::string, false)
 REGISTER_TYPE(changes, std::string, false)
 
-// SENSOR types
-// REGISTER_TYPE(temperature, float, false) // (name,type,false)
-REGISTER_NODE_TYPE(sara_sensor)
+// SENSOR types and their attributes
+REGISTER_NODE_TYPE(sensor)
+// Atributtes for temperature sensor
 REGISTER_TYPE(temperatura, float, false)
 REGISTER_TYPE(presion, float, false)
 REGISTER_TYPE(humedad, float, false)
 REGISTER_TYPE(gas, float, false)
+// Atributtes for vital sensor
 REGISTER_TYPE(distance, float, false)
-
-/////////////////////////////////////////////////
-REGISTER_NODE_TYPE(carlos_sensor)
-REGISTER_TYPE(distancia, float, false)
-REGISTER_TYPE(distanciaTime, int, false)
-REGISTER_TYPE(heartRate, float, false)
-REGISTER_TYPE(breathRate, float, false)
-REGISTER_TYPE(vitalsTime, int, false)
-REGISTER_TYPE(heartRate2, std::string, false)
-REGISTER_TYPE(breathRate2, std::string, false)
-
-
+REGISTER_TYPE(heartrate, float, false)
+REGISTER_TYPE(breathrate, float, false)
 
 #endif // CAMPERO_TYPES_HPP_
