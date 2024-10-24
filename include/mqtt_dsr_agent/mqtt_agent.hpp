@@ -42,7 +42,10 @@ public:
    *
    * @param config_file path to the config file
    */
-  MqttAgent(const std::string & config_file);
+  MqttAgent(const int & agent_id, const std::string & agent_name, 
+  const std::string & robot_name, const std::string & topic, const std::string & message_type, 
+  const std::string & parent_node, const std::string & sensor_name, const std::string & server_address,
+  const std::string & client_id);
 
   /**
    * @brief Destructor
@@ -75,13 +78,6 @@ public:
    * @param topics Topics to subscribe
    */
   // void set_topics(const std::vector<std::string> & topics);
-
-  /**
-   * @brief Set mqtt client parameters (server adress, topics...)
-   *
-   * @param config_file Path to config file
-   */
-  bool set_configuration();
 
 private:
   /* ----------------------------------------  DSR  -------------------- -------------------- */
@@ -142,28 +138,28 @@ private:
   void message_arrived(mqtt::const_message_ptr msg) override;
 
   // DSR graph
+  int agent_id_;
   std::string agent_name_;
   std::string robot_name_;
-  int agent_id_;
   std::shared_ptr<DSR::DSRGraph> G_;
 
-  // The MQTT client
-  mqtt::async_client client_;
-  // Options to use if we need to reconnect
-  mqtt::connect_options conn_options_;
   // Counter for the number of connection retries
   int nretry_;
   // QoS to subscribe
   const int QOS = 1;
   // Number of connection retries
   const int N_RETRY_ATTEMPTS = 5;
-  std::string config_file_;
   std::string topic_;
   std::string message_type_;
   std::string parent_node_;
   std::string sensor_name_;
   std::string server_address_;
   std::string client_id_;
+
+  // The MQTT client
+  mqtt::async_client client_;
+  // Options to use if we need to reconnect
+  mqtt::connect_options conn_options_;
 
   std::optional<DSR::Node> person_node;
   bool control;

@@ -14,16 +14,20 @@
 // limitations under the License.
 
 #include <iostream>
-#include <sstream>
-#include <fstream>
 #include <chrono>
 
 #include "mqtt_dsr_agent/campero_types.hpp"
 #include "mqtt_dsr_agent/json_messages.hpp"
 #include "mqtt_dsr_agent/mqtt_agent.hpp"
 
-MqttAgent::MqttAgent(const std::string & config_file) : config_file_(config_file){
-    /* ----------------------------------------  DSR  -------------------- -------------------- */
+MqttAgent::MqttAgent(const int & agent_id, const std::string & agent_name, 
+const std::string & robot_name, const std::string & topic, const std::string & message_type, 
+const std::string & parent_node, const std::string & sensor_name, const std::string & server_address,
+const std::string & client_id) : 
+agent_id_(agent_id), agent_name_(agent_name), robot_name_(robot_name), topic_(topic), 
+message_type_(message_type), parent_node_(parent_node), sensor_name_(sensor_name), 
+server_address_(server_address), client_id_(client_id), client_(server_address_, client_id_){
+    /* ----------------------------------------  DSR  ---------------------------------------- */
     // Register types for signals
     qRegisterMetaType<uint64_t>("uint64_t");
     qRegisterMetaType<std::string>("std::string");
@@ -47,10 +51,8 @@ MqttAgent::MqttAgent(const std::string & config_file) : config_file_(config_file
     QObject::connect(
         G_.get(), &DSR::DSRGraph::del_edge_signal, this, &MqttAgent::edge_deleted);
 
-    set_configuration();
     /* --------------------  MQTT  --------------------*/
     std::cout << std::endl << " Starting client configuration ...";
-    client_(server_address_, client_id_);
     conn_options_.set_clean_session(false);
     client_.set_callback(*this);
     std::cout << std::endl << " Finished client configuration ...";
@@ -98,54 +100,6 @@ void MqttAgent::disconnect()
 //     topics_ = topics;
 // }
 
-bool MqttAgent::set_configuration(){
-    // Open config file
-    std::ifstream configFile(config_file_);
-    if (!configFile.is_open()) {
-        std::cerr << "Couldn't open config file: " << config_file_ << std::endl;
-        return false;
-    }
-    // Read lines from config file and parse the parameters
-    std::string line;
-    std::cout << "Configuration parameters:";
-    while(std::getline(configFile, line)){
-        std::istringstream is_line(line);
-        std::string key, value;
-        if (std::getline(is_line, key, '=') && std::getline(is_line, value)){
-            if(key == "agent_id"){
-                agent_id_ = std::stoi(value);
-            }else if(key == "agent_name"){
-                agent_name_ = value;
-            }else if(key == "robot_name"){
-                robot_name_ = value;
-            }else if(key == "server_address"){
-                server_address_ = value;
-            }else if(key == "client_id"){
-                client_id_ = value;
-            }else if(key == "topic"){
-                topic_ = value;
-            }else if(key == "message_type"){
-                message_type_ = value;
-            }else if(key == "parent_node"){
-                parent_node_ = value;
-            }else if(key == "sensor_name"){
-                sensor_name_ = value;
-            }else{
-                std::cerr << "Error parsing not defined parameter: " << key << std::endl;
-                return false;
-            }
-        }
-    }
-    std::cout << std::endl << " Finished configuration ...";
-    configFile.close();
-    // /* --------------------  MQTT  --------------------*/
-    // std::cout << std::endl << " Starting client configuration ...";
-    // client_(server_address_, client_id_);
-    // conn_options_.set_clean_session(false);
-    // client_.set_callback(*this);
-    // std::cout << std::endl << " Finished client configuration ...";
-    return true;
-}
 /* ----------------------------------------  DSR  -------------------- -------------------- */
 // Callbacks called when the DSR graph is changed
 void MqttAgent::node_updated(std::uint64_t /*id*/, const std::string & /*type*/)
