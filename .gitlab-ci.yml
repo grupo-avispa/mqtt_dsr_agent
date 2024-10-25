@@ -4,12 +4,12 @@ stages:
 image: grupoavispa/cortex:development-latest
 
 before_script:
-  - DEBIAN_FRONTEND=noninteractive sudo apt-get update
+  - DEBIAN_FRONTEND=noninteractive apt-get update
 
 build:
   stage: build
   script:
-    - sudo apt-get install -y cmake g++ make git openssl libssl-dev nlohmann-json3-dev
+    - apt-get install -y cmake g++ make git openssl libssl-dev nlohmann-json3-dev
     - mkdir build && cd build
     - cmake ..
     - make
