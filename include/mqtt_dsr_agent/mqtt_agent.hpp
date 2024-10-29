@@ -42,10 +42,12 @@ public:
    *
    * @param config_file path to the config file
    */
-  MqttAgent(const int & agent_id, const std::string & agent_name, 
-  const std::string & robot_name, const std::string & topic, const std::string & message_type, 
-  const std::string & parent_node, const std::string & sensor_name, const std::string & server_address,
-  const std::string & client_id);
+  MqttAgent(
+    const int & agent_id, const std::string & agent_name,
+    const std::string & robot_name, const std::string & topic, const std::string & message_type,
+    const std::string & parent_node, const std::string & sensor_name,
+    const std::string & server_address,
+    const std::string & client_id);
 
   /**
    * @brief Destructor
@@ -90,8 +92,8 @@ private:
     const std::string & type, const std::vector<std::string> & att_names);
   void node_deleted(std::uint64_t id);
   void edge_deleted(std::uint64_t from, std::uint64_t to, const std::string & edge_tag);
-  template <typename T>
-  void sensor_data_to_dsr(const T& data);
+  template<typename T>
+  void sensor_data_to_dsr(const T & data);
   /* ----------------------------------------  MQTT  -------------------- -------------------- */
 
   /**

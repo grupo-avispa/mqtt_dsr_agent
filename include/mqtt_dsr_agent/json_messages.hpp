@@ -33,11 +33,12 @@ struct RespiratoryHeartbeatSensor
 /* Check if is a valid JSON RespiratoryHeartbeatSensor */
 inline bool isValidJsonRespiratoryHeartbeatSensor(const json & j)
 {
-    if(!j.contains("heartrate") || !j.contains("breathrate") || 
-      j["heartrate"].get<float>() <= 0 || j["breathrate"].get<float>() <= 0){
+  if (!j.contains("heartrate") || !j.contains("breathrate") ||
+    j["heartrate"].get<float>() <= 0 || j["breathrate"].get<float>() <= 0)
+  {
 
-      return false;
-    }
+    return false;
+  }
   return true;
 }
 
