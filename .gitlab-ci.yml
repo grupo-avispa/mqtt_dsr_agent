@@ -9,7 +9,7 @@ before_script:
 build:
   stage: build
   script:
-    - apt-get install --no-install-recommends -y cmake make openssl libssl-dev nlohmann-json3-dev
+    - apt-get install --no-install-recommends -y cmake g++ make openssl libssl-dev nlohmann-json3-dev
     - mkdir build && cd build
     - cmake ..
     - make
