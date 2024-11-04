@@ -18,7 +18,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(Eigen3 3.3 REQUIRED)
-find_package(Qt5 REQUIRED COMPONENTS Core Widgets OpenGL)
+find_package(Qt5 REQUIRED COMPONENTS Core)
 find_package(fastrtps REQUIRED)
 find_package(nlohmann_json 3.2.0 REQUIRED)
 
@@ -31,8 +31,8 @@ include_directories(
 )
 
 # Set QT libraries and DSR libraries
-set(QT_LIBRARIES Qt5::Widgets Qt5::OpenGL Qt5::Core)
-set(DSR_LIBRARIES dsr_api dsr_core dsr_gui fastcdr fastrtps)
+set(QT_LIBRARIES Qt5::Core)
+set(DSR_LIBRARIES dsr_api dsr_core fastcdr fastrtps)
 set(PahoMqtt_LIBRARIES pthread crypto ssl paho-mqtt3as paho-mqttpp3)
 
 # Set the names
