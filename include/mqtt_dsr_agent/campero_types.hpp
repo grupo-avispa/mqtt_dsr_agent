@@ -43,6 +43,7 @@ REGISTER_EDGE_TYPE(aborting)
 REGISTER_EDGE_TYPE(cancel)
 REGISTER_EDGE_TYPE(failed)
 REGISTER_EDGE_TYPE(navigating)
+REGISTER_EDGE_TYPE(measuring)
 
 // General types
 REGISTER_TYPE(priority, int, false)
@@ -88,6 +89,7 @@ REGISTER_TYPE(activities, std::string, false)
 REGISTER_TYPE(tracking_enable, bool, false)
 REGISTER_TYPE(neuron, bool, false)
 REGISTER_TYPE(accuracy, float, false)
+REGISTER_TYPE(posture, std::string, false)
 
 // BBDD types
 REGISTER_TYPE(bbdd_agent, std::string, false)

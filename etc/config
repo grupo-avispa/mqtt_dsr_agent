@@ -1,9 +1,9 @@
 agent_id=11
 agent_name=vital_sensor_mqtt_agent
 robot_name=robot
-server_address=mqtt://192.168.0.152:1883
-client_id=bedroom_fmws_client
-topic=fmcw_bedroom/person/vitals
+server_address=mqtt://your_broker_ip:your_broker_port
+client_id=bed_fmws_client
+topic=fmcw_bed/person/vitals
 message_type=RespiratoryHeartbeatSensor
-parent_node=bedroom
-sensor_name=vital_sensor_bedroom
+parent_node=bed
+sensor_name=vital_sensor_bed

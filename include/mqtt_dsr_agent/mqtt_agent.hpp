@@ -153,7 +153,7 @@ private:
   const int N_RETRY_ATTEMPTS = 5;
   std::string topic_;
   std::string message_type_;
-  std::string parent_node_;
+  std::string parent_node_name_;
   std::string sensor_name_;
   std::string server_address_;
   std::string client_id_;
@@ -163,8 +163,9 @@ private:
   // Options to use if we need to reconnect
   mqtt::connect_options conn_options_;
 
-  std::optional<DSR::Node> person_node;
-  bool control;
+  std::optional<DSR::Node> person_node_;
+  std::optional<DSR::Node> parent_node_;
+  bool control_;
 };
 
 #endif  // MQTT_AGENT_HPP_

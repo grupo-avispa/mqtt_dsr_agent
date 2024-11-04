@@ -27,7 +27,7 @@ MqttAgent::MqttAgent(
   const std::string & server_address,
   const std::string & client_id)
 : agent_id_(agent_id), agent_name_(agent_name), robot_name_(robot_name), topic_(topic),
-  message_type_(message_type), parent_node_(parent_node), sensor_name_(sensor_name),
+  message_type_(message_type), parent_node_name_(parent_node), sensor_name_(sensor_name),
   server_address_(server_address), client_id_(client_id), client_(server_address_, client_id_)
 {
   /* ----------------------------------------  DSR  ---------------------------------------- */
@@ -117,36 +117,45 @@ void MqttAgent::node_attributes_updated(
 void MqttAgent::edge_updated(
   std::uint64_t from, std::uint64_t to, const std::string & type)
 {
-  if (type == "interacting") {
-    auto robot_node = G_->get_node(from);
-    auto prob_person_node = G_->get_node(to);
-    if (robot_node.has_value() && robot_node.value().name() == "robot" &&
-      prob_person_node.has_value() && prob_person_node.value().type() == "person")
-    {
-      control = true;
-      person_node = prob_person_node;
-      std::cout << "Robot interacting with " << person_node.value().name() << std::endl;
-    }
-  }
+  // if (type == "interacting"){
+  //     auto robot_node = G_->get_node(from);
+  //     auto prob_person_node = G_->get_node(to);
+  //     if(robot_node.has_value() && robot_node.value().name() == "robot"
+  //         && prob_person_node.has_value() && prob_person_node.value().type() == "person"){
+  //         control_ = true;
+  //         person_node = prob_person_node;
+  //         std::cout << "Robot interacting with " << person_node.value().name() << std::endl;
+  //         }
+  // }
 
-  if (type == "in") {
+  if (type == "in" && message_type_ == "RespiratoryHeartbeatSensor") {
+    parent_node_ = G_->get_node(parent_node_name_);
+    if (!parent_node_.has_value()) {
+      std::cout << "ERROR: Could not get Parent node [" << parent_node_name_ << "]"
+                << std::endl;
+      return;
+    }
     auto room_node = G_->get_node(to);
     auto prob_person_node = G_->get_node(from);
-    if (room_node.has_value() && room_node.value().name() == "bed" &&
+    if (room_node.has_value() && room_node.value().name() == parent_node_.value().name() &&
       prob_person_node.has_value() && prob_person_node.value().type() == "person")
     {
-      control = true;
-      person_node = prob_person_node;
+      control_ = true;
+      person_node_ = prob_person_node;
+      // send control msg to sensor
       const char * payload = "OnSensor";
-      client_.publish("Sensor/Control", payload, strlen(payload), QOS, false);
-      std::cout << "Person" << person_node.value().name() << std::endl;
-    } else if (room_node.has_value() && room_node.value().name() == "bathroom" &&
-      prob_person_node.has_value() && prob_person_node.value().type() == "person")
-    {
-      control = true;
-      person_node = prob_person_node;
-      std::cout << "Person" << person_node.value().name() << " in bathroom" << std::endl;
+      std::string control_topic = topic_ + "/control";
+      std::cout << "Control Topic: " << control_topic << std::endl;
+      client_.publish(control_topic, payload, strlen(payload), QOS, false);
+      std::cout << "Person: " << person_node_.value().name() << std::endl;
+      std::cout << "FMCW Sensor measurement has started...:" << std::endl;
     }
+    // else if(room_node.has_value() && room_node.value().name() == "bathroom"
+    //     && prob_person_node.has_value() && prob_person_node.value().type() == "person"){
+    //     control = true;
+    //     person_node = prob_person_node;
+    //     std::cout << "Person" << person_node.value().name() << " in bathroom" << std::endl;
+    // }
   }
 }
 
@@ -162,23 +171,26 @@ void MqttAgent::node_deleted(std::uint64_t /*id*/)
 
 void MqttAgent::edge_deleted(std::uint64_t from, std::uint64_t to, const std::string & edge_tag)
 {
-  if (edge_tag == "interacting") {
-    std::cout << "Delete edge interacting between " << from << " and " << to << std::endl;
-    person_node = {};
-    control = false;
-  }
+  // if (edge_tag == "interacting"){
+  //     std::cout << "Delete edge interacting between " << from << " and " << to << std::endl;
+  //     person_node = {};
+  //     control = false;
+  // }
   if (edge_tag == "in") {
     std::cout << "Delete edge in between " << from << " and " << to << std::endl;
     auto from_node = G_->get_node(from);
     auto to_node = G_->get_node(to);
-    if (from_node.has_value() && from_node.value().type() == "person" &&
-      to_node.has_value() && to_node.value().name() == "bed")
+    if (from_node.has_value() && person_node_.has_value() && to_node.has_value() &&
+      parent_node_.has_value() && (to_node.value().name() == parent_node_.value().name()) &&
+      (from_node.value().name() == person_node_.value().name()))
     {
       std::cout << "Delete person in bed" << std::endl;
-      person_node = {};
+      person_node_ = {};
       const char * payload = "OffSensor";
+      std::string control_topic = topic_ + "/control";
       client_.publish("Sensor/Control", payload, strlen(payload), QOS, false);
-      control = false;
+      control_ = false;
+      std::cout << "Person has left the room, stop measuring ..." << std::endl;
     }
   }
 }
@@ -186,6 +198,10 @@ void MqttAgent::edge_deleted(std::uint64_t from, std::uint64_t to, const std::st
 template<typename T>
 void MqttAgent::sensor_data_to_dsr(const T & data)
 {
+  // First check data is valid
+  if (data.heartrate <= 30 || data.breathrate <= 10) {
+    return;
+  }
   // Check if sensor node has been created
   auto sensor_node = G_->get_node(sensor_name_);
   // Get timestamp (better to do on local machine due to clock mis-synchronizations)
@@ -203,18 +219,29 @@ void MqttAgent::sensor_data_to_dsr(const T & data)
       if (auto id = G_->insert_node(sensor_node.value()); id.has_value()) {
         std::cout << "Inserted sensor node [" << sensor_name_ << "] in the graph."
                   << std::endl;
-        auto parent_node = G_->get_node(parent_node_);
-        if (!parent_node.has_value()) {
-          std::cout << "ERROR: Could not get Parent node [" << parent_node_ << "]"
+        if (!parent_node_.has_value()) {
+          std::cout << "ERROR: Could not get Parent node [" << parent_node_name_ << "]"
                     << std::endl;
           return;
         }
+        // Set "IN" edge between room and sensor
         auto edge = DSR::Edge::create<in_edge_type>(
-          parent_node.value().id(),
-          sensor_node.value().id());
+          sensor_node.value().id(),
+          parent_node_.value().id());
         if (G_->insert_or_assign_edge(edge)) {
           std::cout << "Inserted edge between [" << sensor_name_ << "] and ["
-                    << parent_node_ << "]" << std::endl;
+                    << parent_node_name_ << "]" << std::endl;
+        }
+        // Set "MEASURING" edge between sensor and person
+        auto edges_in = G_->get_node_edges_by_type(parent_node_.value(), "in");
+        if (person_node_.has_value() && sensor_node.has_value()) {
+          auto edge_measure = DSR::Edge::create<measuring_edge_type>(
+            sensor_node.value().id(),
+            person_node_.value().id());
+          if (G_->insert_or_assign_edge(edge_measure)) {
+            std::cout << "Inserted edge between [" << sensor_name_ << "] and ["
+                      << person_node_.value().name() << "]" << std::endl;
+          }
         }
       }
     }
@@ -293,6 +320,7 @@ void MqttAgent::connection_lost(const std::string & cause)
 void MqttAgent::message_arrived(mqtt::const_message_ptr msg)
 {
   if ( (msg->get_topic() == topic_) && (message_type_ == "RespiratoryHeartbeatSensor") ) {
+    if (!control_) {return;}
     auto sensor = RespiratoryHeartbeatSensor(json::parse(msg->get_payload_str()));
     sensor_data_to_dsr<RespiratoryHeartbeatSensor>(sensor);
   }
