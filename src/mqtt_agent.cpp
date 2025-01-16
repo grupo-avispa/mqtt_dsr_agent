@@ -251,7 +251,7 @@ void MqttAgent::sensor_data_to_dsr(const T & data)
       G_->add_or_modify_attrib_local<heartrate_att>(sensor_node.value(), data.heartrate);
       G_->add_or_modify_attrib_local<breathrate_att>(sensor_node.value(), data.breathrate);
       G_->add_or_modify_attrib_local<timestamp_att>(sensor_node.value(), timestamp);
-      update_node_with_source(sensor_node.value());
+      G_->update_node(sensor_node.value());
       std::cout << "Sensor node [" << sensor_name_ << "] has been updated." << std::endl;
     }
   }
