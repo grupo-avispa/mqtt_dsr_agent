@@ -22,11 +22,11 @@
 
 MqttAgent::MqttAgent(
   const int & agent_id, const std::string & agent_name,
-  const std::string & robot_name, const std::string & topic, const std::string & message_type,
+  const std::string & source, const std::string & topic, const std::string & message_type,
   const std::string & parent_node, const std::string & sensor_name,
   const std::string & server_address,
   const std::string & client_id)
-: agent_id_(agent_id), agent_name_(agent_name), robot_name_(robot_name), topic_(topic),
+: agent_id_(agent_id), agent_name_(agent_name), source_(source), topic_(topic),
   message_type_(message_type), parent_node_name_(parent_node), sensor_name_(sensor_name),
   server_address_(server_address), client_id_(client_id), client_(server_address_, client_id_)
 {
@@ -225,9 +225,8 @@ void MqttAgent::sensor_data_to_dsr(const T & data)
           return;
         }
         // Set "IN" edge between room and sensor
-        auto edge = DSR::Edge::create<in_edge_type>(
-          sensor_node.value().id(),
-          parent_node_.value().id());
+        auto edge =
+          DSR::Edge::create<in_edge_type>(sensor_node.value().id(), parent_node_.value().id());
         if (G_->insert_or_assign_edge(edge)) {
           std::cout << "Inserted edge between [" << sensor_name_ << "] and ["
                     << parent_node_name_ << "]" << std::endl;
@@ -236,8 +235,7 @@ void MqttAgent::sensor_data_to_dsr(const T & data)
         auto edges_in = G_->get_node_edges_by_type(parent_node_.value(), "in");
         if (person_node_.has_value() && sensor_node.has_value()) {
           auto edge_measure = DSR::Edge::create<measuring_edge_type>(
-            sensor_node.value().id(),
-            person_node_.value().id());
+            sensor_node.value().id(), person_node_.value().id());
           if (G_->insert_or_assign_edge(edge_measure)) {
             std::cout << "Inserted edge between [" << sensor_name_ << "] and ["
                       << person_node_.value().name() << "]" << std::endl;
