@@ -52,7 +52,6 @@ set(dependencies PUBLIC
 # Set the headers
 set(headers
   include/${PROJECT_NAME}/mqtt_agent.hpp
-  include/${PROJECT_NAME}/campero_types.hpp
 )
 
 # # Qt Moc

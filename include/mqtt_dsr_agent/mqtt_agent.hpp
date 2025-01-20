@@ -26,7 +26,6 @@
 
 #include "dsr/api/dsr_api.h"
 #include "mqtt/async_client.h"
-#include "mqtt_dsr_agent/campero_types.hpp"
 
 /**
  * @class MqttAgent

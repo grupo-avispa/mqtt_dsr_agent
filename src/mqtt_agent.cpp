@@ -17,7 +17,6 @@
 #include <iostream>
 #include <chrono>
 
-#include "mqtt_dsr_agent/campero_types.hpp"
 #include "mqtt_dsr_agent/json_messages.hpp"
 #include "mqtt_dsr_agent/mqtt_agent.hpp"
 
