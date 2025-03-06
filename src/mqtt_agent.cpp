@@ -191,6 +191,11 @@ void MqttAgent::edge_deleted(std::uint64_t from, std::uint64_t to, const std::st
       client_.publish("Sensor/Control", payload, strlen(payload), QOS, false);
       control_ = false;
       std::cout << "Person has left the room, stop measuring ..." << std::endl;
+      auto sensor_node = G_->get_node(sensor_name_);
+      if (G_->delete_edge(sensor_node.value().id(), person_node_.value().id(), "measuring")) {
+        std::cout << "Deleted edge measuring between [" << sensor_name_ << "] and ["
+                  << person_node_.value().name() << "]" << std::endl;
+      }
     }
   }
 }
@@ -198,10 +203,6 @@ void MqttAgent::edge_deleted(std::uint64_t from, std::uint64_t to, const std::st
 template<typename T>
 void MqttAgent::sensor_data_to_dsr(const T & data)
 {
-  // First check data is valid
-  if (data.heartrate <= 30 || data.breathrate <= 10) {
-    return;
-  }
   // Check if sensor node has been created
   auto sensor_node = G_->get_node(sensor_name_);
   // Get timestamp (better to do on local machine due to clock mis-synchronizations)
@@ -210,48 +211,48 @@ void MqttAgent::sensor_data_to_dsr(const T & data)
       std::chrono::seconds>(now.time_since_epoch()).count());
   if (!sensor_node.has_value()) {
     sensor_node.emplace(DSR::Node::create<sensor_node_type>(sensor_name_));
-    // Check type of msg
-    if (message_type_ == "RespiratoryHeartbeatSensor") {
-      // Parse vital parameters, update the sensor node and insert it
-      G_->add_or_modify_attrib_local<heartrate_att>(sensor_node.value(), data.heartrate);
-      G_->add_or_modify_attrib_local<breathrate_att>(sensor_node.value(), data.breathrate);
-      G_->add_or_modify_attrib_local<timestamp_att>(sensor_node.value(), timestamp);
-      if (auto id = G_->insert_node(sensor_node.value()); id.has_value()) {
-        std::cout << "Inserted sensor node [" << sensor_name_ << "] in the graph."
+    if (auto id = G_->insert_node(sensor_node.value()); id.has_value()) {
+      std::cout << "Inserted sensor node [" << sensor_name_ << "] in the graph."
+                << std::endl;
+      if (!parent_node_.has_value()) {
+        std::cout << "ERROR: Could not get Parent node [" << parent_node_name_ << "]"
                   << std::endl;
-        if (!parent_node_.has_value()) {
-          std::cout << "ERROR: Could not get Parent node [" << parent_node_name_ << "]"
-                    << std::endl;
-          return;
-        }
-        // Set "IN" edge between room and sensor
-        auto edge =
-          DSR::Edge::create<in_edge_type>(sensor_node.value().id(), parent_node_.value().id());
-        if (G_->insert_or_assign_edge(edge)) {
+        return;
+      }
+      // Set "IN" edge between room and sensor
+      auto edge =
+        DSR::Edge::create<in_edge_type>(sensor_node.value().id(), parent_node_.value().id());
+      if (G_->insert_or_assign_edge(edge)) {
+        std::cout << "Inserted edge between [" << sensor_name_ << "] and ["
+                  << parent_node_name_ << "]" << std::endl;
+      }
+    }
+  }
+
+  // Check type of msg and update the sensor node with the new data
+  if (message_type_ == "RespiratoryHeartbeatSensor") {
+    // First check data is valid
+    if (data.heartrate <= 30 || data.breathrate <= 10) {
+      return;
+    }
+    // Set "MEASURING" edge between sensor and person once for RespiratoryHeartbeatSensor
+    auto edges_measuring = G_->get_node_edges_by_type(sensor_node.value(), "measuring");
+    if (edges_measuring.empty()) {
+      if (person_node_.has_value() && sensor_node.has_value()) {
+        auto edge_measure = DSR::Edge::create<measuring_edge_type>(
+          sensor_node.value().id(), person_node_.value().id());
+        if (G_->insert_or_assign_edge(edge_measure)) {
           std::cout << "Inserted edge between [" << sensor_name_ << "] and ["
-                    << parent_node_name_ << "]" << std::endl;
-        }
-        // Set "MEASURING" edge between sensor and person
-        auto edges_in = G_->get_node_edges_by_type(parent_node_.value(), "in");
-        if (person_node_.has_value() && sensor_node.has_value()) {
-          auto edge_measure = DSR::Edge::create<measuring_edge_type>(
-            sensor_node.value().id(), person_node_.value().id());
-          if (G_->insert_or_assign_edge(edge_measure)) {
-            std::cout << "Inserted edge between [" << sensor_name_ << "] and ["
-                      << person_node_.value().name() << "]" << std::endl;
-          }
+                    << person_node_.value().name() << "]" << std::endl;
         }
       }
     }
-  } else {
-    // Check type of msg
-    if (message_type_ == "RespiratoryHeartbeatSensor") {
-      G_->add_or_modify_attrib_local<heartrate_att>(sensor_node.value(), data.heartrate);
-      G_->add_or_modify_attrib_local<breathrate_att>(sensor_node.value(), data.breathrate);
-      G_->add_or_modify_attrib_local<timestamp_att>(sensor_node.value(), timestamp);
-      G_->update_node(sensor_node.value());
-      std::cout << "Sensor node [" << sensor_name_ << "] has been updated." << std::endl;
-    }
+    // Parse vital parameters, update the sensor node and insert it
+    G_->add_or_modify_attrib_local<heartrate_att>(sensor_node.value(), data.heartrate);
+    G_->add_or_modify_attrib_local<breathrate_att>(sensor_node.value(), data.breathrate);
+    G_->add_or_modify_attrib_local<timestamp_att>(sensor_node.value(), timestamp);
+    G_->update_node(sensor_node.value());
+    std::cout << "Sensor node [" << sensor_name_ << "] has been updated." << std::endl;
   }
 }
 
