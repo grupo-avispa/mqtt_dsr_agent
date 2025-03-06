@@ -14,10 +14,10 @@ if(NOT PahoMqttCpp_FOUND)
         GIT_TAG           v1.4.0
         GIT_PROGRESS      TRUE
         GIT_SHALLOW       TRUE
-        SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/paho_mqtt_cpp-src"
-        BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/paho_mqtt_cpp-build"
+        #SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/paho_mqtt_cpp-src"
+        #BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/paho_mqtt_cpp-build"
     )
-    #FetchContent_MakeAvailable(paho_mqtt_cpp)
-    FetchContent_Populate(paho_mqtt_cpp)
-    add_subdirectory(${paho_mqtt_cpp_SOURCE_DIR} ${paho_mqtt_cpp_BINARY_DIR} EXCLUDE_FROM_ALL)
+    FetchContent_MakeAvailable(paho_mqtt_cpp)
+    #FetchContent_Populate(paho_mqtt_cpp)
+    #add_subdirectory(${paho_mqtt_cpp_SOURCE_DIR} ${paho_mqtt_cpp_BINARY_DIR} EXCLUDE_FROM_ALL)
 endif()

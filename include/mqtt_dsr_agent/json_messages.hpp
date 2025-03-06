@@ -23,6 +23,35 @@
 #include "nlohmann/json.hpp"
 
 using json = nlohmann::json;
+using namespace std;
+
+struct datoSensorCalidadAire
+{
+  string name;		    // sensor name
+  string type;		    // sensor types defined in mqtt_dsr_agent/etc/config
+  string location;	  // should match map locations
+  string parentNode;	// DSR node that should be this sensor’s parent
+  
+  bool toInfluxDB;	  // true = these data goes to influxdb
+  long long int timestamp;	// timestamp (EPOCH time in nanoseconds) of the current sample in the DSR
+
+  unsigned int pm1_0; // ug/m3
+  unsigned int pm2_5; // ug/m3
+  unsigned int pm10;  // ug/m3
+  unsigned int co2;   // ppm
+  unsigned int tvoc;  // lvl: 0 (good) to 3 (too bad! Get out of the room!!)
+  unsigned int ch2o;  // ug/m3
+  float co;           // ppm
+  unsigned int o3;    // ppb
+  unsigned int no2;   // ppb
+  float temperature;  // celsius
+  unsigned int humidity;  // percentage
+};
+
+// -------------------------------------------------------------------------------------
+// JP: De aquí para abajo es lo que había antes. Habrá que actualizarlo !!!
+// 
+// -------------------------------------------------------------------------------------
 
 struct RespiratoryHeartbeatSensor
 {

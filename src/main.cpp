@@ -56,6 +56,10 @@ std::map<std::string, std::string> set_configuration(const std::string & config_
         config_map["parent_node"] = value;
       } else if (key == "sensor_name") {
         config_map["sensor_name"] = value;
+      } else if (key == "server_username") {
+        config_map["server_username"] = value;
+      } else if (key == "server_password") {
+        config_map["server_password"] = value;
       } else {
         std::cerr << "Error parsing not defined parameter: " << key << std::endl;
         return {};
@@ -81,11 +85,10 @@ int main(int argc, char * argv[])
     config_map["agent_name"],
     config_map["robot_name"],
     config_map["topic"],
-    config_map["message_type"],
-    config_map["parent_node"],
-    config_map["sensor_name"],
     config_map["server_address"],
     config_map["client_id"]);
+  // set connection credentials
+  mqtt_agent->set_credentials(config_map["server_username"],config_map["server_password"]);
   mqtt_agent->connect();
   return app.exec();
 }

@@ -44,16 +44,12 @@ public:
    * @param agent_name Name of the agent.
    * @param source Source of the message.
    * @param topic Topic to subscribe.
-   * @param message_type Type of the message.
-   * @param parent_node Name of the parent node.
-   * @param sensor_name Name of the sensor.
    * @param server_address Address of the MQTT broker.
    * @param client_id Identifier of the client.
    */
   MqttAgent(
     const int & agent_id, const std::string & agent_name,
-    const std::string & source, const std::string & topic, const std::string & message_type,
-    const std::string & parent_node, const std::string & sensor_name,
+    const std::string & source, const std::string & topic,
     const std::string & server_address, const std::string & client_id);
 
   /**

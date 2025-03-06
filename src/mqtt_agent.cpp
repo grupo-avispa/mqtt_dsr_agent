@@ -22,12 +22,10 @@
 
 MqttAgent::MqttAgent(
   const int & agent_id, const std::string & agent_name,
-  const std::string & source, const std::string & topic, const std::string & message_type,
-  const std::string & parent_node, const std::string & sensor_name,
+  const std::string & source, const std::string & topic, 
   const std::string & server_address,
   const std::string & client_id)
 : agent_id_(agent_id), agent_name_(agent_name), source_(source), topic_(topic),
-  message_type_(message_type), parent_node_name_(parent_node), sensor_name_(sensor_name),
   server_address_(server_address), client_id_(client_id), client_(server_address_, client_id_)
 {
   /* ----------------------------------------  DSR  ---------------------------------------- */
@@ -318,6 +316,8 @@ void MqttAgent::connection_lost(const std::string & cause)
 
 void MqttAgent::message_arrived(mqtt::const_message_ptr msg)
 {
+  std::cout << "Message received" << std::endl;
+  std::cout << "Payload: " << msg->get_payload_str() << std::endl;
   if ( (msg->get_topic() == topic_) && (message_type_ == "RespiratoryHeartbeatSensor") ) {
     if (!control_) {return;}
     auto sensor = RespiratoryHeartbeatSensor(json::parse(msg->get_payload_str()));

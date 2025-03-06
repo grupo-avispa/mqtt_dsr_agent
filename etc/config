@@ -1,9 +1,8 @@
 agent_id=11
-agent_name=vital_sensor_mqtt_agent
+agent_name=mqtt_dsr_agent
 robot_name=robot
-server_address=mqtt://your_broker_ip:your_broker_port
-client_id=bed_fmws_client
-topic=fmcw_bed/person/vitals
-message_type=RespiratoryHeartbeatSensor
-parent_node=bed
-sensor_name=vital_sensor_bed
+server_address=mqtt://waspbrain.es:1886
+server_username=pisito
+server_password=wasp
+client_id=mqtt_dsr_agent
+topic=avispa/test/jp
