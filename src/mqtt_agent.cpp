@@ -17,7 +17,6 @@
 #include <iostream>
 #include <chrono>
 
-#include "mqtt_dsr_agent/json_messages.hpp"
 #include "mqtt_dsr_agent/mqtt_agent.hpp"
 
 MqttAgent::MqttAgent(
@@ -112,6 +111,7 @@ void MqttAgent::node_attributes_updated(
 {
 }
 
+// JP: TODO REHACER ESTA FUNCION <----------------------------------------------------------------------------------------------------
 void MqttAgent::edge_updated(
   std::uint64_t from, std::uint64_t to, const std::string & type)
 {
@@ -126,35 +126,35 @@ void MqttAgent::edge_updated(
   //         }
   // }
 
-  if (type == "in" && message_type_ == "RespiratoryHeartbeatSensor") {
-    parent_node_ = G_->get_node(parent_node_name_);
-    if (!parent_node_.has_value()) {
-      std::cout << "ERROR: Could not get Parent node [" << parent_node_name_ << "]"
-                << std::endl;
-      return;
-    }
-    auto room_node = G_->get_node(to);
-    auto prob_person_node = G_->get_node(from);
-    if (room_node.has_value() && room_node.value().name() == parent_node_.value().name() &&
-      prob_person_node.has_value() && prob_person_node.value().type() == "person")
-    {
-      control_ = true;
-      person_node_ = prob_person_node;
-      // send control msg to sensor
-      const char * payload = "OnSensor";
-      std::string control_topic = topic_ + "/control";
-      std::cout << "Control Topic: " << control_topic << std::endl;
-      client_.publish(control_topic, payload, strlen(payload), QOS, false);
-      std::cout << "Person: " << person_node_.value().name() << std::endl;
-      std::cout << "FMCW Sensor measurement has started...:" << std::endl;
-    }
-    // else if(room_node.has_value() && room_node.value().name() == "bathroom"
-    //     && prob_person_node.has_value() && prob_person_node.value().type() == "person"){
-    //     control = true;
-    //     person_node = prob_person_node;
-    //     std::cout << "Person" << person_node.value().name() << " in bathroom" << std::endl;
-    // }
-  }
+  // if (type == "in" && message_type_ == "RespiratoryHeartbeatSensor") {
+  //   parent_node_ = G_->get_node(parent_node_name_);
+  //   if (!parent_node_.has_value()) {
+  //     std::cout << "ERROR: Could not get Parent node [" << parent_node_name_ << "]"
+  //               << std::endl;
+  //     return;
+  //   }
+  //   auto room_node = G_->get_node(to);
+  //   auto prob_person_node = G_->get_node(from);
+  //   if (room_node.has_value() && room_node.value().name() == parent_node_.value().name() &&
+  //     prob_person_node.has_value() && prob_person_node.value().type() == "person")
+  //   {
+  //     control_ = true;
+  //     person_node_ = prob_person_node;
+  //     // send control msg to sensor
+  //     const char * payload = "OnSensor";
+  //     std::string control_topic = topic_ + "/control";
+  //     std::cout << "Control Topic: " << control_topic << std::endl;
+  //     client_.publish(control_topic, payload, strlen(payload), QOS, false);
+  //     std::cout << "Person: " << person_node_.value().name() << std::endl;
+  //     std::cout << "FMCW Sensor measurement has started...:" << std::endl;
+  //   }
+  //   // else if(room_node.has_value() && room_node.value().name() == "bathroom"
+  //   //     && prob_person_node.has_value() && prob_person_node.value().type() == "person"){
+  //   //     control = true;
+  //   //     person_node = prob_person_node;
+  //   //     std::cout << "Person" << person_node.value().name() << " in bathroom" << std::endl;
+  //   // }
+  // }
 }
 
 void MqttAgent::edge_attributes_updated(
@@ -169,70 +169,105 @@ void MqttAgent::node_deleted(std::uint64_t /*id*/)
 
 void MqttAgent::edge_deleted(std::uint64_t from, std::uint64_t to, const std::string & edge_tag)
 {
-  // if (edge_tag == "interacting"){
-  //     std::cout << "Delete edge interacting between " << from << " and " << to << std::endl;
-  //     person_node = {};
-  //     control = false;
+  // // if (edge_tag == "interacting"){
+  // //     std::cout << "Delete edge interacting between " << from << " and " << to << std::endl;
+  // //     person_node = {};
+  // //     control = false;
+  // // }
+  // if (edge_tag == "in") {
+  //   std::cout << "Delete edge in between " << from << " and " << to << std::endl;
+  //   auto from_node = G_->get_node(from);
+  //   auto to_node = G_->get_node(to);
+  //   if (from_node.has_value() && person_node_.has_value() && to_node.has_value() &&
+  //     parent_node_.has_value() && (to_node.value().name() == parent_node_.value().name()) &&
+  //     (from_node.value().name() == person_node_.value().name()))
+  //   {
+  //     std::cout << "Delete person in bed" << std::endl;
+  //     person_node_ = {};
+  //     const char * payload = "OffSensor";
+  //     std::string control_topic = topic_ + "/control";
+  //     client_.publish("Sensor/Control", payload, strlen(payload), QOS, false);
+  //     control_ = false;
+  //     std::cout << "Person has left the room, stop measuring ..." << std::endl;
+  //     auto sensor_node = G_->get_node(sensor_name_);
+  //     if (G_->delete_edge(sensor_node.value().id(), person_node_.value().id(), "measuring")) {
+  //       std::cout << "Deleted edge measuring between [" << sensor_name_ << "] and ["
+  //                 << person_node_.value().name() << "]" << std::endl;
+  //     }
+  //   }
   // }
-  if (edge_tag == "in") {
-    std::cout << "Delete edge in between " << from << " and " << to << std::endl;
-    auto from_node = G_->get_node(from);
-    auto to_node = G_->get_node(to);
-    if (from_node.has_value() && person_node_.has_value() && to_node.has_value() &&
-      parent_node_.has_value() && (to_node.value().name() == parent_node_.value().name()) &&
-      (from_node.value().name() == person_node_.value().name()))
-    {
-      std::cout << "Delete person in bed" << std::endl;
-      person_node_ = {};
-      const char * payload = "OffSensor";
-      std::string control_topic = topic_ + "/control";
-      client_.publish("Sensor/Control", payload, strlen(payload), QOS, false);
-      control_ = false;
-      std::cout << "Person has left the room, stop measuring ..." << std::endl;
-      auto sensor_node = G_->get_node(sensor_name_);
-      if (G_->delete_edge(sensor_node.value().id(), person_node_.value().id(), "measuring")) {
-        std::cout << "Deleted edge measuring between [" << sensor_name_ << "] and ["
-                  << person_node_.value().name() << "]" << std::endl;
-      }
-    }
-  }
 }
 
-template<typename T>
-void MqttAgent::sensor_data_to_dsr(const T & data)
+int MqttAgent::sensor_data_to_dsr(json data)
 {
-  // Check if sensor node has been created
+  // check all relevant message metadata are available
+  if ( (!data.contains("sensorName")) || (!data.contains("sensorType")) || (!data.contains("sensorLocation")) || (!data.contains("parentNode"))) {
+    std::cout << "sensor_data_to_dsr ERROR: Received message has not adequate metadata. No action performed" << std::endl;
+    return 0;
+  }
+
+  string sensor_name_ = data["sensorName"];
+  string parent_node_name_ = data["parentNode"];
+
+  // get or create timestamp  
+  long long int timestamp_;
+  if ( data.contains("timestamp") )
+    timestamp_ = data["timestamp"]; // timestamp provided
+  else {
+    // timestamp assigned upon reception
+    std::cout << "WARNING: Received message had no timestamp. Assigning reception time as node timestamp" << std::endl;
+    auto now = std::chrono::system_clock::now();
+    timestamp_ = static_cast<int>(std::chrono::duration_cast<
+        std::chrono::seconds>(now.time_since_epoch()).count());
+  }
+
+  // Check if sensor node has been created and create it if necessaryç
   auto sensor_node = G_->get_node(sensor_name_);
-  // Get timestamp (better to do on local machine due to clock mis-synchronizations)
-  auto now = std::chrono::system_clock::now();
-  int timestamp = static_cast<int>(std::chrono::duration_cast<
-      std::chrono::seconds>(now.time_since_epoch()).count());
   if (!sensor_node.has_value()) {
     sensor_node.emplace(DSR::Node::create<sensor_node_type>(sensor_name_));
     if (auto id = G_->insert_node(sensor_node.value()); id.has_value()) {
       std::cout << "Inserted sensor node [" << sensor_name_ << "] in the graph."
                 << std::endl;
+      auto parent_node_ = G_->get_node(parent_node_name_);
       if (!parent_node_.has_value()) {
         std::cout << "ERROR: Could not get Parent node [" << parent_node_name_ << "]"
                   << std::endl;
-        return;
+        return 0;
       }
       // Set "IN" edge between room and sensor
-      auto edge =
-        DSR::Edge::create<in_edge_type>(sensor_node.value().id(), parent_node_.value().id());
+      auto edge = DSR::Edge::create<in_edge_type>(sensor_node.value().id(), parent_node_.value().id());
       if (G_->insert_or_assign_edge(edge)) {
         std::cout << "Inserted edge between [" << sensor_name_ << "] and ["
                   << parent_node_name_ << "]" << std::endl;
       }
     }
   }
-
+        
   // Check type of msg and update the sensor node with the new data
-  if (message_type_ == "RespiratoryHeartbeatSensor") {
+  if (data["sensorType"] == "ZPHS01B"){
+    // Parse air quality values, update the sensor node and insert it
+    G_->add_or_modify_attrib_local<pm1_att>(sensor_node.value(), (int)(data["pm1.0 (ug/m3)"]));
+    G_->add_or_modify_attrib_local<pm25_att>(sensor_node.value(), (int)(data["pm2.5 (ug/m3)"]));
+    G_->add_or_modify_attrib_local<pm10_att>(sensor_node.value(), (int)(data["pm10 (ug/m3)"]));
+    G_->add_or_modify_attrib_local<co2_att>(sensor_node.value(), (int)(data["CO2 (ppm)"]));
+    G_->add_or_modify_attrib_local<tvoc_att>(sensor_node.value(), (int)(data["TVOC (lvl)"]));
+    G_->add_or_modify_attrib_local<ch2o_att>(sensor_node.value(), (int)(data["CH2O (ug/m3)"]));
+    G_->add_or_modify_attrib_local<co_att>(sensor_node.value(), (float)(data["CO (ppm)"]));
+    G_->add_or_modify_attrib_local<o3_att>(sensor_node.value(), (int)(data["O3 (ppb)"]));
+    G_->add_or_modify_attrib_local<no2_att>(sensor_node.value(), (int)(data["NO2 (ppb)"]));
+    G_->add_or_modify_attrib_local<temperature_att>(sensor_node.value(), (float)(data["temp (celsius)"]));
+    G_->add_or_modify_attrib_local<humidity_att>(sensor_node.value(), (float)(data["humidity (percent)"]));
+    if (data.contains("toInfluxDB"))
+      G_->add_or_modify_attrib_local<toinflux_att>(sensor_node.value(), (bool)(data["toInfluxDB"]));
+    G_->add_or_modify_attrib_local<measure_timestamp_att>(sensor_node.value(), (uint64_t)(timestamp_));
+    G_->update_node(sensor_node.value());
+    std::cout << "Sensor node [" << sensor_name_ << "] has been updated." << std::endl;
+  }  
+  else if (data["sensorType"] == "datoRadarRespiracion") {
     // First check data is valid
-    if (data.heartrate <= 30 || data.breathrate <= 10) {
-      return;
-    }
+    if (data["heartrate"] <= 30 || data["breathrate"] <= 10) {
+      return 0;
+    }  
     // Set "MEASURING" edge between sensor and person once for RespiratoryHeartbeatSensor
     auto edges_measuring = G_->get_node_edges_by_type(sensor_node.value(), "measuring");
     if (edges_measuring.empty()) {
@@ -246,12 +281,16 @@ void MqttAgent::sensor_data_to_dsr(const T & data)
       }
     }
     // Parse vital parameters, update the sensor node and insert it
-    G_->add_or_modify_attrib_local<heartrate_att>(sensor_node.value(), data.heartrate);
-    G_->add_or_modify_attrib_local<breathrate_att>(sensor_node.value(), data.breathrate);
-    G_->add_or_modify_attrib_local<timestamp_att>(sensor_node.value(), timestamp);
+    G_->add_or_modify_attrib_local<heartrate_att>(sensor_node.value(), (float)(data["heartrate"]));
+    G_->add_or_modify_attrib_local<breathrate_att>(sensor_node.value(), (float)(data["breathrate"]));
+    if (data.contains("toInfluxDB"))
+      G_->add_or_modify_attrib_local<toinflux_att>(sensor_node.value(), (bool)(data["toInfluxDB"]));
+    G_->add_or_modify_attrib_local<measure_timestamp_att>(sensor_node.value(), (uint64_t)(timestamp_));
     G_->update_node(sensor_node.value());
     std::cout << "Sensor node [" << sensor_name_ << "] has been updated." << std::endl;
   }
+
+  return 1;
 }
 
 /* ----------------------------------------  MQTT -------------------- -------------------- */
@@ -316,12 +355,15 @@ void MqttAgent::connection_lost(const std::string & cause)
 
 void MqttAgent::message_arrived(mqtt::const_message_ptr msg)
 {
-  std::cout << "Message received" << std::endl;
-  std::cout << "Payload: " << msg->get_payload_str() << std::endl;
-  if ( (msg->get_topic() == topic_) && (message_type_ == "RespiratoryHeartbeatSensor") ) {
-    if (!control_) {return;}
-    auto sensor = RespiratoryHeartbeatSensor(json::parse(msg->get_payload_str()));
-    sensor_data_to_dsr<RespiratoryHeartbeatSensor>(sensor);
+  json j_object = msg->get_payload_str();
+  // check message type
+  if ( (!j_object.contains("sensorType")) || (!j_object.contains("sensorName")) ) {
+    std::cout << " WARNING: No 'sensorType' or 'sensorName' key found in the message. No action performed" << std::endl;
+    return; 
   }
-  // TODO: Add new sensor topics and msg types
+  else {
+    std::cout << "Message received from sensor " << j_object["sensorName"] << ". Type: " << j_object["sensorType"] << std::endl;
+  }
+  if (!sensor_data_to_dsr(j_object))
+    std::cout << " WARNING: Data message from sensor " << j_object["sensor_name"] << " not uploaded in the DSR" << std::endl;
 }

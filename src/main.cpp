@@ -50,8 +50,6 @@ std::map<std::string, std::string> set_configuration(const std::string & config_
         config_map["client_id"] = value;
       } else if (key == "topic") {
         config_map["topic"] = value;
-      } else if (key == "message_type") {
-        config_map["message_type"] = value;
       } else if (key == "parent_node") {
         config_map["parent_node"] = value;
       } else if (key == "sensor_name") {

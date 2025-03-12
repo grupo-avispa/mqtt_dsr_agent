@@ -27,6 +27,8 @@
 #include "dsr/api/dsr_api.h"
 #include "mqtt/async_client.h"
 
+#include "mqtt_dsr_agent/json_messages.hpp"
+
 /**
  * @class MqttAgent
  * @brief Class to manage the communication between the DSR graph and the MQTT broker
@@ -142,11 +144,10 @@ private:
   /**
    * @brief Update the attributes of the given node in the DSR graph.
    *
-   * @tparam T The type of the node.
-   * @param data Data to update the node.
+   * @param data JSON containing sensor data to update to the node
+   * @result 1: data successfully updaten in the DSR. 0: error uploading data
    */
-  template<typename T>
-  void sensor_data_to_dsr(const T & data);
+  int sensor_data_to_dsr(json data);
   /* ----------------------------------------  MQTT  -------------------- -------------------- */
 
   /**
@@ -205,14 +206,9 @@ private:
   // Number of connection retries
   const int N_RETRY_ATTEMPTS = 5;
 
-  // MQTT topics and message type
+  // MQTT topic
   std::string topic_;
-  std::string message_type_;
-
-  // Parent node and sensor name
-  std::string parent_node_name_;
-  std::string sensor_name_;
-
+  
   // The MQTT client
   std::string server_address_;
   std::string client_id_;
@@ -221,7 +217,7 @@ private:
   mqtt::connect_options conn_options_;
 
   std::optional<DSR::Node> person_node_;
-  std::optional<DSR::Node> parent_node_;
+  //std::optional<DSR::Node> parent_node_;
   bool control_;
 };
 
