@@ -56,6 +56,15 @@ MqttAgent::MqttAgent(
   conn_options_.set_clean_session(false);
   client_.set_callback(*this);
   std::cout << std::endl << " Finished client configuration ...";
+
+  // TESTS JP: Crea nodo padre
+  auto room_node = G_->get_node("cocina");
+  if (!room_node.has_value()) {
+    room_node.emplace(DSR::Node::create<room_node_type>("cocina"));
+    if (auto id = G_->insert_node(room_node.value()); id.has_value()) {
+      G_->update_node(room_node.value());
+    }
+  }
 }
 
 MqttAgent::~MqttAgent()
@@ -111,7 +120,8 @@ void MqttAgent::node_attributes_updated(
 {
 }
 
-// JP: TODO REHACER ESTA FUNCION <----------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------
+// JP: COMPROBAR SI FUNCIONA BIEN <--------------------------------------------------------------
 void MqttAgent::edge_updated(
   std::uint64_t from, std::uint64_t to, const std::string & type)
 {
@@ -126,36 +136,40 @@ void MqttAgent::edge_updated(
   //         }
   // }
 
-  // if (type == "in" && message_type_ == "RespiratoryHeartbeatSensor") {
-  //   parent_node_ = G_->get_node(parent_node_name_);
-  //   if (!parent_node_.has_value()) {
-  //     std::cout << "ERROR: Could not get Parent node [" << parent_node_name_ << "]"
-  //               << std::endl;
-  //     return;
-  //   }
-  //   auto room_node = G_->get_node(to);
-  //   auto prob_person_node = G_->get_node(from);
-  //   if (room_node.has_value() && room_node.value().name() == parent_node_.value().name() &&
-  //     prob_person_node.has_value() && prob_person_node.value().type() == "person")
-  //   {
-  //     control_ = true;
-  //     person_node_ = prob_person_node;
-  //     // send control msg to sensor
-  //     const char * payload = "OnSensor";
-  //     std::string control_topic = topic_ + "/control";
-  //     std::cout << "Control Topic: " << control_topic << std::endl;
-  //     client_.publish(control_topic, payload, strlen(payload), QOS, false);
-  //     std::cout << "Person: " << person_node_.value().name() << std::endl;
-  //     std::cout << "FMCW Sensor measurement has started...:" << std::endl;
-  //   }
-  //   // else if(room_node.has_value() && room_node.value().name() == "bathroom"
-  //   //     && prob_person_node.has_value() && prob_person_node.value().type() == "person"){
-  //   //     control = true;
-  //   //     person_node = prob_person_node;
-  //   //     std::cout << "Person" << person_node.value().name() << " in bathroom" << std::endl;
-  //   // }
-  // }
+  auto from_node = G_->get_node(from);
+  if (!from_node.has_value()) {
+    std::cout << "ERROR: Could not get 'from' node [" << from << "]" << std::endl;
+    return;
+  }
+  auto to_node = G_->get_node(to);
+  if (!to_node.has_value()) {
+    std::cout << "ERROR: Could not get 'to' node [" << to << "]" << std::endl;
+    return;
+  }
+
+  if (type == "in") {
+    // check if 'from' node is a sensor
+    auto sensor_type = G_->get_attrib_by_name<type_of_sensor_att>(from_node.value());
+    if (sensor_type.has_value()) {
+      // radar respiratory sensor
+      if (sensor_type == "datoRadarRespiracion") {
+        // check if the 'from' node is a 'person' node
+        if (from_node.has_value() && from_node.value().type() == "person") {
+          control_ = true;
+          person_node_ = from_node;
+          // send control msg to sensor
+          const char * payload = "OnSensor";
+          std::string control_topic = topic_ + "/control";
+          std::cout << "Control Topic: " << control_topic << std::endl;
+          client_.publish(control_topic, payload, strlen(payload), QOS, false);
+          std::cout << "Person: " << person_node_.value().name() << std::endl;
+          std::cout << "FMCW Sensor measurement has started...:" << std::endl;
+        }
+      }
+    }
+  }
 }
+// ----------------------------------------------------------------------------------------------
 
 void MqttAgent::edge_attributes_updated(
   std::uint64_t /*from*/, std::uint64_t /*to*/,
@@ -167,6 +181,8 @@ void MqttAgent::node_deleted(std::uint64_t /*id*/)
 {
 }
 
+// ----------------------------------------------------------------------------------------------
+// JP: COMPROBAR SI FUNCIONA BIEN <--------------------------------------------------------------
 void MqttAgent::edge_deleted(std::uint64_t from, std::uint64_t to, const std::string & edge_tag)
 {
   // // if (edge_tag == "interacting"){
@@ -174,29 +190,32 @@ void MqttAgent::edge_deleted(std::uint64_t from, std::uint64_t to, const std::st
   // //     person_node = {};
   // //     control = false;
   // // }
-  // if (edge_tag == "in") {
-  //   std::cout << "Delete edge in between " << from << " and " << to << std::endl;
-  //   auto from_node = G_->get_node(from);
-  //   auto to_node = G_->get_node(to);
-  //   if (from_node.has_value() && person_node_.has_value() && to_node.has_value() &&
+  if (edge_tag == "in") {
+    std::cout << "Delete edge in between " << from << " and " << to << std::endl;
+    auto from_node = G_->get_node(from);
+    auto to_node = G_->get_node(to);
+    // JP: aquí creo que no haría falta comprobar que el 'to' del enlace 'in' coincide con el 'parent_node'. COMPROBAR
+    if (from_node.has_value() && person_node_.has_value() && to_node.has_value() &&
   //     parent_node_.has_value() && (to_node.value().name() == parent_node_.value().name()) &&
-  //     (from_node.value().name() == person_node_.value().name()))
-  //   {
-  //     std::cout << "Delete person in bed" << std::endl;
-  //     person_node_ = {};
-  //     const char * payload = "OffSensor";
-  //     std::string control_topic = topic_ + "/control";
-  //     client_.publish("Sensor/Control", payload, strlen(payload), QOS, false);
-  //     control_ = false;
-  //     std::cout << "Person has left the room, stop measuring ..." << std::endl;
-  //     auto sensor_node = G_->get_node(sensor_name_);
-  //     if (G_->delete_edge(sensor_node.value().id(), person_node_.value().id(), "measuring")) {
-  //       std::cout << "Deleted edge measuring between [" << sensor_name_ << "] and ["
-  //                 << person_node_.value().name() << "]" << std::endl;
-  //     }
-  //   }
-  // }
+       (from_node.value().name() == person_node_.value().name()))
+     {
+        std::cout << "Delete person in bed" << std::endl;
+        person_node_ = {};
+        const char * payload = "OffSensor";
+        std::string control_topic = topic_ + "/control";
+        client_.publish("Sensor/Control", payload, strlen(payload), QOS, false);
+        control_ = false;
+        std::cout << "Person has left the room, stop measuring ..." << std::endl;
+        if (radar_sensor_node_.has_value()) {
+          if (G_->delete_edge(radar_sensor_node_.value().id(), person_node_.value().id(), "measuring")) {
+            std::cout << "Deleted edge measuring between [" << radar_sensor_node_.value().name() << "] and ["
+                      << person_node_.value().name() << "]" << std::endl;
+          }
+        }
+    }
+   }
 }
+// ----------------------------------------------------------------------------------------------
 
 int MqttAgent::sensor_data_to_dsr(json data)
 {
@@ -221,19 +240,21 @@ int MqttAgent::sensor_data_to_dsr(json data)
         std::chrono::seconds>(now.time_since_epoch()).count());
   }
 
-  // Check if sensor node has been created and create it if necessaryç
+  // Check if parent node exists (if not, we cannot put the sensor in the world!)
+  auto parent_node_ = G_->get_node(parent_node_name_);
+  if (!parent_node_.has_value()) {
+    std::cout << "ERROR: Could not find parent node [" << parent_node_name_ << "] for sensor [" << sensor_name_ << "]. "
+              << "Sensor node not included in the DSR" << std::endl;
+    return 0;
+  }
+
+  // Then check if sensor node has been created and create it if necessary 
   auto sensor_node = G_->get_node(sensor_name_);
   if (!sensor_node.has_value()) {
     sensor_node.emplace(DSR::Node::create<sensor_node_type>(sensor_name_));
     if (auto id = G_->insert_node(sensor_node.value()); id.has_value()) {
       std::cout << "Inserted sensor node [" << sensor_name_ << "] in the graph."
                 << std::endl;
-      auto parent_node_ = G_->get_node(parent_node_name_);
-      if (!parent_node_.has_value()) {
-        std::cout << "ERROR: Could not get Parent node [" << parent_node_name_ << "]"
-                  << std::endl;
-        return 0;
-      }
       // Set "IN" edge between room and sensor
       auto edge = DSR::Edge::create<in_edge_type>(sensor_node.value().id(), parent_node_.value().id());
       if (G_->insert_or_assign_edge(edge)) {
@@ -242,7 +263,10 @@ int MqttAgent::sensor_data_to_dsr(json data)
       }
     }
   }
-        
+  
+  // insert type_of_sensor attribute
+  G_->add_or_modify_attrib_local<type_of_sensor_att>(sensor_node.value(), (std::string)(data["sensorType"]));
+
   // Check type of msg and update the sensor node with the new data
   if (data["sensorType"] == "ZPHS01B"){
     // Parse air quality values, update the sensor node and insert it
@@ -269,6 +293,7 @@ int MqttAgent::sensor_data_to_dsr(json data)
       return 0;
     }  
     // Set "MEASURING" edge between sensor and person once for RespiratoryHeartbeatSensor
+    radar_sensor_node_ = sensor_node; // store for other uses (JP: I don't like this very much...)
     auto edges_measuring = G_->get_node_edges_by_type(sensor_node.value(), "measuring");
     if (edges_measuring.empty()) {
       if (person_node_.has_value() && sensor_node.has_value()) {
@@ -355,7 +380,9 @@ void MqttAgent::connection_lost(const std::string & cause)
 
 void MqttAgent::message_arrived(mqtt::const_message_ptr msg)
 {
-  json j_object = msg->get_payload_str();
+  string j_object_str = msg->get_payload_str();
+  json j_object = json::parse(j_object_str);
+
   // check message type
   if ( (!j_object.contains("sensorType")) || (!j_object.contains("sensorName")) ) {
     std::cout << " WARNING: No 'sensorType' or 'sensorName' key found in the message. No action performed" << std::endl;
@@ -365,5 +392,5 @@ void MqttAgent::message_arrived(mqtt::const_message_ptr msg)
     std::cout << "Message received from sensor " << j_object["sensorName"] << ". Type: " << j_object["sensorType"] << std::endl;
   }
   if (!sensor_data_to_dsr(j_object))
-    std::cout << " WARNING: Data message from sensor " << j_object["sensor_name"] << " not uploaded in the DSR" << std::endl;
+    std::cout << " WARNING: Data message from sensor " << j_object["sensorName"] << " not uploaded in the DSR" << std::endl;
 }

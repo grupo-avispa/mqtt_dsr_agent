@@ -216,7 +216,9 @@ private:
   // Options to use if we need to reconnect
   mqtt::connect_options conn_options_;
 
-  std::optional<DSR::Node> person_node_;
+  // JP: No me gusta esto aquí, es muy particular para el sensor de respiración por radar
+  std::optional<DSR::Node> person_node_; 
+  std::optional<DSR::Node> radar_sensor_node_;   
   //std::optional<DSR::Node> parent_node_;
   bool control_;
 };
