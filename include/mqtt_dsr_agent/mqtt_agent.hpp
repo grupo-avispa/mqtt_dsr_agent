@@ -1,6 +1,7 @@
 // Copyright (c) 2024 Alberto J. Tudela Roldán
 // Copyright (c) 2024 José Galeas Merchán
-// Copyright (c) 2024 Grupo Avispa, DTE, Universidad de Málaga
+// Copyright (c) 2025 Juan Pedro Bandera Rubio
+// Copyright (c) 2025 Grupo Avispa, DTE, Universidad de Málaga
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
