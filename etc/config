@@ -5,4 +5,4 @@ server_address=mqtt://waspbrain.es:1886
 server_username=pisito
 server_password=wasp
 client_id=mqtt_dsr_agent
-topic=avispa/test/jp
+topic=avispa/smarthome

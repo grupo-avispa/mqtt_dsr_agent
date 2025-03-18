@@ -225,7 +225,7 @@ int MqttAgent::sensor_data_to_dsr(json data)
     return 0;
   }
 
-  string sensor_name_ = data["sensorName"];
+  string sensor_type_ = data["sensorType"];
   string parent_node_name_ = data["parentNode"];
 
   // get or create timestamp  
@@ -243,32 +243,32 @@ int MqttAgent::sensor_data_to_dsr(json data)
   // Check if parent node exists (if not, we cannot put the sensor in the world!)
   auto parent_node_ = G_->get_node(parent_node_name_);
   if (!parent_node_.has_value()) {
-    std::cout << "ERROR: Could not find parent node [" << parent_node_name_ << "] for sensor [" << sensor_name_ << "]. "
+    std::cout << "ERROR: Could not find parent node [" << parent_node_name_ << "] for sensor [" << sensor_type_ << "]. "
               << "Sensor node not included in the DSR" << std::endl;
     return 0;
   }
 
   // Then check if sensor node has been created and create it if necessary 
-  auto sensor_node = G_->get_node(sensor_name_);
+  auto sensor_node = G_->get_node(sensor_type_);
   if (!sensor_node.has_value()) {
-    sensor_node.emplace(DSR::Node::create<sensor_node_type>(sensor_name_));
+    sensor_node.emplace(DSR::Node::create<sensor_node_type>(sensor_type_));
     if (auto id = G_->insert_node(sensor_node.value()); id.has_value()) {
-      std::cout << "Inserted sensor node [" << sensor_name_ << "] in the graph."
+      std::cout << "Inserted sensor node [" << sensor_type_ << "] in the graph."
                 << std::endl;
       // Set "IN" edge between room and sensor
       auto edge = DSR::Edge::create<in_edge_type>(sensor_node.value().id(), parent_node_.value().id());
       if (G_->insert_or_assign_edge(edge)) {
-        std::cout << "Inserted edge between [" << sensor_name_ << "] and ["
+        std::cout << "Inserted edge between [" << sensor_type_ << "] and ["
                   << parent_node_name_ << "]" << std::endl;
       }
     }
   }
   
   // insert type_of_sensor attribute
-  G_->add_or_modify_attrib_local<type_of_sensor_att>(sensor_node.value(), (std::string)(data["sensorType"]));
+  G_->add_or_modify_attrib_local<type_of_sensor_att>(sensor_node.value(), (std::string)(data["sensorName"]));
 
   // Check type of msg and update the sensor node with the new data
-  if (data["sensorType"] == "ZPHS01B"){
+  if (data["sensorName"] == "ZPHS01B"){
     // Parse air quality values, update the sensor node and insert it
     G_->add_or_modify_attrib_local<pm1_att>(sensor_node.value(), (int)(data["pm1.0 (ug/m3)"]));
     G_->add_or_modify_attrib_local<pm25_att>(sensor_node.value(), (int)(data["pm2.5 (ug/m3)"]));
@@ -285,9 +285,9 @@ int MqttAgent::sensor_data_to_dsr(json data)
       G_->add_or_modify_attrib_local<toinflux_att>(sensor_node.value(), (bool)(data["toInfluxDB"]));
     G_->add_or_modify_attrib_local<measure_timestamp_att>(sensor_node.value(), (uint64_t)(timestamp_));
     G_->update_node(sensor_node.value());
-    std::cout << "Sensor node [" << sensor_name_ << "] has been updated." << std::endl;
+    std::cout << "Sensor node [" << sensor_type_ << "] has been updated." << std::endl;
   }  
-  else if (data["sensorType"] == "datoRadarRespiracion") {
+  else if (data["sensorName"] == "datoRadarRespiracion") {
     // First check data is valid
     if (data["heartrate"] <= 30 || data["breathrate"] <= 10) {
       return 0;
@@ -300,7 +300,7 @@ int MqttAgent::sensor_data_to_dsr(json data)
         auto edge_measure = DSR::Edge::create<measuring_edge_type>(
           sensor_node.value().id(), person_node_.value().id());
         if (G_->insert_or_assign_edge(edge_measure)) {
-          std::cout << "Inserted edge between [" << sensor_name_ << "] and ["
+          std::cout << "Inserted edge between [" << sensor_type_ << "] and ["
                     << person_node_.value().name() << "]" << std::endl;
         }
       }
@@ -312,7 +312,7 @@ int MqttAgent::sensor_data_to_dsr(json data)
       G_->add_or_modify_attrib_local<toinflux_att>(sensor_node.value(), (bool)(data["toInfluxDB"]));
     G_->add_or_modify_attrib_local<measure_timestamp_att>(sensor_node.value(), (uint64_t)(timestamp_));
     G_->update_node(sensor_node.value());
-    std::cout << "Sensor node [" << sensor_name_ << "] has been updated." << std::endl;
+    std::cout << "Sensor node [" << sensor_type_ << "] has been updated." << std::endl;
   }
 
   return 1;
