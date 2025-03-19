@@ -237,7 +237,7 @@ int MqttAgent::sensor_data_to_dsr(json data)
     std::cout << "WARNING: Received message had no timestamp. Assigning reception time as node timestamp" << std::endl;
     auto now = std::chrono::system_clock::now();
     timestamp_ = static_cast<int>(std::chrono::duration_cast<
-        std::chrono::seconds>(now.time_since_epoch()).count());
+        std::chrono::nanoseconds>(now.time_since_epoch()).count());
   }
 
   // Check if parent node exists (if not, we cannot put the sensor in the world!)
@@ -269,6 +269,8 @@ int MqttAgent::sensor_data_to_dsr(json data)
 
   // Check type of msg and update the sensor node with the new data
   if (data["sensorName"] == "ZPHS01B"){
+    // Add location (we use a 'room' attribute for this)
+    G_->add_or_modify_attrib_local<room_att>(sensor_node.value(), (std::string)(data["sensorLocation"]));
     // Parse air quality values, update the sensor node and insert it
     G_->add_or_modify_attrib_local<pm1_att>(sensor_node.value(), (int)(data["pm1.0 (ug/m3)"]));
     G_->add_or_modify_attrib_local<pm25_att>(sensor_node.value(), (int)(data["pm2.5 (ug/m3)"]));
