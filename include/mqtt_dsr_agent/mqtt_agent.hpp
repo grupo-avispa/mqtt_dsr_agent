@@ -1,5 +1,5 @@
-// Copyright (c) 2024 Alberto J. Tudela Roldán
-// Copyright (c) 2024 José Galeas Merchán
+// Copyright (c) 2025 Alberto J. Tudela Roldán
+// Copyright (c) 2025 José Galeas Merchán
 // Copyright (c) 2025 Juan Pedro Bandera Rubio
 // Copyright (c) 2025 Grupo Avispa, DTE, Universidad de Málaga
 //
@@ -217,7 +217,6 @@ private:
   // Options to use if we need to reconnect
   mqtt::connect_options conn_options_;
 
-  // JP: No me gusta esto aquí, es muy particular para el sensor de respiración por radar
   std::optional<DSR::Node> person_node_; 
   std::optional<DSR::Node> radar_sensor_node_;   
   //std::optional<DSR::Node> parent_node_;

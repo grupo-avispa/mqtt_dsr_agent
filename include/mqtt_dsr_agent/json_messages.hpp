@@ -62,11 +62,6 @@ struct datoRadarRespiracion
   float breathrate;
 };
 
-// -------------------------------------------------------------------------------------
-// JP: De aquí para abajo es lo que había antes. Habrá que actualizarlo !!!
-// 
-// -------------------------------------------------------------------------------------
-
 struct RespiratoryHeartbeatSensor
 {
   float heartrate;

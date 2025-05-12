@@ -1,6 +1,6 @@
-// Copyright (c) 2024 Alberto J. Tudela Roldán
-// Copyright (c) 2024 José Galeas Merchán
-// Copyright (c) 2024 Grupo Avispa, DTE, Universidad de Málaga
+// Copyright (c) 2025 Alberto J. Tudela Roldán
+// Copyright (c) 2025 José Galeas Merchán
+// Copyright (c) 2025 Grupo Avispa, DTE, Universidad de Málaga
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -120,22 +120,9 @@ void MqttAgent::node_attributes_updated(
 {
 }
 
-// ----------------------------------------------------------------------------------------------
-// JP: COMPROBAR SI FUNCIONA BIEN <--------------------------------------------------------------
 void MqttAgent::edge_updated(
   std::uint64_t from, std::uint64_t to, const std::string & type)
 {
-  // if (type == "interacting"){
-  //     auto robot_node = G_->get_node(from);
-  //     auto prob_person_node = G_->get_node(to);
-  //     if(robot_node.has_value() && robot_node.value().name() == "robot"
-  //         && prob_person_node.has_value() && prob_person_node.value().type() == "person"){
-  //         control_ = true;
-  //         person_node = prob_person_node;
-  //         std::cout << "Robot interacting with " << person_node.value().name() << std::endl;
-  //         }
-  // }
-
   auto from_node = G_->get_node(from);
   if (!from_node.has_value()) {
     std::cout << "ERROR: Could not get 'from' node [" << from << "]" << std::endl;
@@ -181,22 +168,13 @@ void MqttAgent::node_deleted(std::uint64_t /*id*/)
 {
 }
 
-// ----------------------------------------------------------------------------------------------
-// JP: COMPROBAR SI FUNCIONA BIEN <--------------------------------------------------------------
 void MqttAgent::edge_deleted(std::uint64_t from, std::uint64_t to, const std::string & edge_tag)
 {
-  // // if (edge_tag == "interacting"){
-  // //     std::cout << "Delete edge interacting between " << from << " and " << to << std::endl;
-  // //     person_node = {};
-  // //     control = false;
-  // // }
   if (edge_tag == "in") {
     std::cout << "Delete edge in between " << from << " and " << to << std::endl;
     auto from_node = G_->get_node(from);
     auto to_node = G_->get_node(to);
-    // JP: aquí creo que no haría falta comprobar que el 'to' del enlace 'in' coincide con el 'parent_node'. COMPROBAR
     if (from_node.has_value() && person_node_.has_value() && to_node.has_value() &&
-  //     parent_node_.has_value() && (to_node.value().name() == parent_node_.value().name()) &&
        (from_node.value().name() == person_node_.value().name()))
      {
         std::cout << "Delete person in bed" << std::endl;
@@ -295,7 +273,7 @@ int MqttAgent::sensor_data_to_dsr(json data)
       return 0;
     }  
     // Set "MEASURING" edge between sensor and person once for RespiratoryHeartbeatSensor
-    radar_sensor_node_ = sensor_node; // store for other uses (JP: I don't like this very much...)
+    radar_sensor_node_ = sensor_node; 
     auto edges_measuring = G_->get_node_edges_by_type(sensor_node.value(), "measuring");
     if (edges_measuring.empty()) {
       if (person_node_.has_value() && sensor_node.has_value()) {
