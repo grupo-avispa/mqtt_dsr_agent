@@ -1,0 +1,30 @@
+# GitHub Actions workflow to build WASP DSR Planner
+
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    name: Build Project
+    runs-on: ubuntu-24.04
+    container:
+      image: grupoavispa/cortex:development-latest
+    steps:
+      - name: Update APT
+        run: |
+          DEBIAN_FRONTEND=noninteractive apt-get update -y
+          DEBIAN_FRONTEND=noninteractive apt-get install -y cmake g++ make git openssl libssl-dev nlohmann-json3-dev
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Build project
+        run: |
+          mkdir -p build && cd build
+          cmake ..
+          make -j$(nproc)
+          make install
