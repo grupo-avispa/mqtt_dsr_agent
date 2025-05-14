@@ -16,7 +16,7 @@ This is a simple MQTT agent that listens to a topic and sends the received messa
 To build from source, clone the latest version from this repository and compile the package using the following command:
 ```bash
 cd $HOME
-git clone --recurse-submodules https://github.com/grupo-avispa/mqtt_dsr_agent.git
+git clone https://github.com/grupo-avispa/mqtt_dsr_agent.git
 cd mqtt_dsr_agent
 mkdir -p build && cd build
 cmake .. && make -j4 && sudo make install
