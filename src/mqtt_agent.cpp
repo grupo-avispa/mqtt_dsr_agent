@@ -57,14 +57,14 @@ MqttAgent::MqttAgent(
   client_.set_callback(*this);
   std::cout << std::endl << " Finished client configuration ...";
 
-  // TESTS JP: Crea nodo padre
-  auto room_node = G_->get_node("cocina");
-  if (!room_node.has_value()) {
-    room_node.emplace(DSR::Node::create<room_node_type>("cocina"));
-    if (auto id = G_->insert_node(room_node.value()); id.has_value()) {
-      G_->update_node(room_node.value());
-    }
-  }
+  // // TESTS JP: Crea nodo padre
+  // auto room_node = G_->get_node("salon");
+  // if (!room_node.has_value()) {
+  //   room_node.emplace(DSR::Node::create<room_node_type>("salon"));
+  //   if (auto id = G_->insert_node(room_node.value()); id.has_value()) {
+  //     G_->update_node(room_node.value());
+  //   }
+  // }
 }
 
 MqttAgent::~MqttAgent()
