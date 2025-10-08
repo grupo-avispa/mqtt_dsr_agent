@@ -57,14 +57,14 @@ MqttAgent::MqttAgent(
   client_.set_callback(*this);
   std::cout << std::endl << " Finished client configuration ...";
 
-  // // TESTS JP: Crea nodo padre
-  // auto room_node = G_->get_node("salon");
-  // if (!room_node.has_value()) {
-  //   room_node.emplace(DSR::Node::create<room_node_type>("salon"));
-  //   if (auto id = G_->insert_node(room_node.value()); id.has_value()) {
-  //     G_->update_node(room_node.value());
-  //   }
-  // }
+  // TESTS JP: Crea nodo padre
+  auto room_node = G_->get_node("salon");
+  if (!room_node.has_value()) {
+    room_node.emplace(DSR::Node::create<room_node_type>("salon"));
+    if (auto id = G_->insert_node(room_node.value()); id.has_value()) {
+      G_->update_node(room_node.value());
+    }
+  }
 }
 
 MqttAgent::~MqttAgent()
@@ -293,6 +293,32 @@ int MqttAgent::sensor_data_to_dsr(json data)
     G_->add_or_modify_attrib_local<measure_timestamp_att>(sensor_node.value(), (uint64_t)(timestamp_));
     G_->update_node(sensor_node.value());
     std::cout << "Sensor node [" << sensor_type_ << "] has been updated." << std::endl;
+  }
+  else if (data["sensorName"] == "PIR sensor Adafruit ID 189"){
+    // Add location (we use a 'room' attribute for this)
+    G_->add_or_modify_attrib_local<room_att>(sensor_node.value(), (std::string)(data["sensorLocation"]));
+    // Parse presence value, update the sensor node and insert it
+    G_->add_or_modify_attrib_local<presence_att>(sensor_node.value(), (bool)(data["presence"]));
+    if (data.contains("toInfluxDB"))
+      G_->add_or_modify_attrib_local<toinflux_att>(sensor_node.value(), (bool)(data["toInfluxDB"]));
+    G_->add_or_modify_attrib_local<measure_timestamp_att>(sensor_node.value(), (uint64_t)(timestamp_));
+    G_->update_node(sensor_node.value());
+    std::cout << "Sensor node [" << sensor_type_ << "] has been updated." << std::endl;
+  } 
+  else if (data["sensorName"] == "Grove Sound Sensor"){
+    // Add location (we use a 'room' attribute for this)
+    G_->add_or_modify_attrib_local<room_att>(sensor_node.value(), (std::string)(data["sensorLocation"]));
+    // Parse volume value, update the sensor node and insert it
+    G_->add_or_modify_attrib_local<volume_att>(sensor_node.value(), (float)(data["volume"]));
+    if (data.contains("toInfluxDB"))
+      G_->add_or_modify_attrib_local<toinflux_att>(sensor_node.value(), (bool)(data["toInfluxDB"]));
+    G_->add_or_modify_attrib_local<measure_timestamp_att>(sensor_node.value(), (uint64_t)(timestamp_));
+    G_->update_node(sensor_node.value());
+    std::cout << "Sensor node [" << sensor_type_ << "] has been updated." << std::endl;
+  } 
+  else {
+    std::cout << "sensor_data_to_dsr ERROR: Sensor " << data["sensorName"] << " not supported by mqtt_agent (yet)" << std::endl;
+    return 0;
   }
 
   return 1;
