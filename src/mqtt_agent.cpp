@@ -136,7 +136,7 @@ void MqttAgent::edge_updated(
 
   if (type == "in") {
     // check if 'from' node is a sensor
-    auto sensor_type = G_->get_attrib_by_name<type_of_sensor_att>(from_node.value());
+    auto sensor_type = G_->get_attrib_by_name<category_att>(from_node.value());
     if (sensor_type.has_value()) {
       // radar respiratory sensor
       if (sensor_type == "datoRadarRespiracion") {
@@ -243,8 +243,8 @@ int MqttAgent::sensor_data_to_dsr(json data)
     }
   }
  
-  // insert type_of_sensor attribute
-  G_->add_or_modify_attrib_local<type_of_sensor_att>(sensor_node.value(), (std::string)(data["sensorType"]));
+  // insert category attribute
+  G_->add_or_modify_attrib_local<category_att>(sensor_node.value(), (std::string)(data["sensorType"]));
 
   // Check type of msg and update the sensor node with the new data
   if (data["sensorType"] == "calidad_aire"){ 
