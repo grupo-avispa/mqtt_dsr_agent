@@ -20,7 +20,7 @@ jobs:
           DEBIAN_FRONTEND=noninteractive apt-get install -y cmake g++ make git openssl libssl-dev nlohmann-json3-dev
 
       - name: Checkout Repository
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v7
 
       - name: Build project
         run: |
